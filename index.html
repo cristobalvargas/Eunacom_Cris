@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0f172a" />
-  <title>EUNACOM Pro — Simulador Clínico Interactiva (Guevara & Pediatría)</title>
+  <title>EUNACOM Pro — Simulador Clínico Interactivo (Guevara & Pediatría)</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -111,12 +111,18 @@
 
       <!-- Right Action Controls -->
       <div class="flex items-center gap-1.5 sm:gap-2">
-        <!-- Manual PDF Load / Settings -->
-        <button onclick="app.openDataModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors" title="Respaldo JSON y Gestión de PDFs">
+        <!-- Quick Sync Now Button + Cloud Status Indicator -->
+        <button onclick="app.syncNowManual()" id="cloudSyncHeaderBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors" title="Estado de sincronización en la nube (Toca para sincronizar ahora)">
+          <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+          <span id="cloudStatusText" class="text-[11px] font-bold">Solo Local</span>
+        </button>
+
+        <!-- Manual PDF Load / Cloud Settings -->
+        <button onclick="app.openDataModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors" title="Sincronización Nube, Respaldo JSON y PDFs">
           <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
           </svg>
-          <span class="hidden md:inline">Datos / PDF</span>
+          <span class="hidden md:inline">Nube / Datos</span>
         </button>
 
         <!-- Theme Toggle -->
@@ -131,6 +137,11 @@
       </div>
     </div>
   </header>
+
+  <!-- PRIVATE BROWSING / STORAGE WARNING BANNER (Hidden unless storage fails) -->
+  <div id="storageWarningBanner" class="hidden bg-rose-950/90 text-rose-200 border-b border-rose-800 px-4 py-2.5 text-xs text-center">
+    ⚠️ <strong>Modo Privado detectado o memoria restringida:</strong> Tu navegador está bloqueando el guardado permanente local. Desactiva la Navegación Privada o conecta la sincronización con Firebase en <strong>"Nube / Datos"</strong>.
+  </div>
 
   <!-- PDF EXTRACTION BANNER / LOADER -->
   <div id="loaderBanner" class="bg-slate-900 text-white border-b border-slate-800 px-4 py-4">
@@ -590,20 +601,55 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 2: DATA MANAGEMENT, JSON BACKUP & PDF RELOAD ==================== -->
-  <div id="dataModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-2xl space-y-5">
+  <!-- ==================== MODAL 2: CLOUD SYNC (FIREBASE), JSON BACKUP & PDF RELOAD ==================== -->
+  <div id="dataModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs overflow-y-auto">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-5 my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Gestión de Progreso y Archivos PDF</h3>
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">☁️ Sincronización Nube y Gestión de Datos</h3>
         <button onclick="app.closeDataModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white">✕</button>
       </div>
 
-      <!-- JSON Export / Import -->
-      <div class="space-y-2.5">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">1. Sincronizar Progreso (JSON)</h4>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Exporta tu historial de respuestas para respaldarlo o pasarlo entre tu computador y tu celular.</p>
+      <!-- SECTION 1: FIREBASE CLOUD REALTIME SYNC -->
+      <div class="space-y-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            1. Sincronización Automática entre Dispositivos (Firebase)
+          </h4>
+          <span id="modalCloudBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            Sin configurar
+          </span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+          Pega la URL de tu <strong>Firebase Realtime Database</strong> para que tu iPhone, iPad y computador compartan el progreso en tiempo real automáticamente.
+        </p>
+
+        <div class="space-y-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">URL de Firebase Realtime Database</label>
+            <input type="url" id="firebaseUrlInput" placeholder="https://tu-proyecto-default-rtdb.firebaseio.com/" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-emerald-500 font-mono" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">ID de Perfil / Usuario (Usa el mismo en tus equipos)</label>
+            <input type="text" id="firebaseUserKeyInput" placeholder="cristobal_eunacom" class="w-full px-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-emerald-500 font-mono" />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button onclick="app.saveCloudConfigAndSync()" class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition">
+            ☁️ Guardar y Sincronizar Ahora
+          </button>
+          <button onclick="app.forcePullFromCloud()" class="py-2.5 px-3 rounded-xl bg-slate-200/80 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition" title="Descargar datos de la nube y fusionar">
+            ⬇️ Descargar Nube
+          </button>
+        </div>
+        <p id="cloudLastSyncInfo" class="text-[11px] text-slate-500 dark:text-slate-400 font-mono"></p>
+      </div>
+
+      <!-- SECTION 2: JSON Export / Import -->
+      <div class="space-y-2.5 pt-2 border-t border-slate-200 dark:border-slate-800">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">2. Respaldo Manual en Archivo (JSON)</h4>
         <div class="grid grid-cols-2 gap-2.5">
-          <button onclick="app.exportProgressJSON()" class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+          <button onclick="app.exportProgressJSON()" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5">
             ⬇️ Exportar JSON
           </button>
           <label class="cursor-pointer py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5">
@@ -613,12 +659,9 @@
         </div>
       </div>
 
-      <!-- Manual PDF Upload & Re-index -->
+      <!-- SECTION 3: Manual PDF Upload & Re-index -->
       <div class="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
-        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">2. Fuente de PDFs y Caché IndexedDB</h4>
-        <p class="text-xs text-slate-500 dark:text-slate-400">
-          En GitHub Pages se leen automáticamente <code class="px-1 bg-slate-100 dark:bg-slate-800 rounded">./Banco_EUNACOM_Pediatria.pdf</code> y <code class="px-1 bg-slate-100 dark:bg-slate-800 rounded">./Banco_EUNACOM_Guevara.pdf</code>. También puedes cargarlos manualmente aquí:
-        </p>
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">3. Fuente de PDFs y Caché IndexedDB</h4>
         <div class="flex flex-col sm:flex-row gap-2">
           <label class="flex-1 cursor-pointer py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs text-center">
             📂 Cargar PDFs manualmente
@@ -632,7 +675,7 @@
 
       <!-- Danger Zone: Reset Progress -->
       <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-        <span class="text-xs text-slate-500">¿Borrar todas las estadísticas guardadas?</span>
+        <span class="text-xs text-slate-500">¿Borrar todas las estadísticas (Local y Nube)?</span>
         <button onclick="app.clearAllProgress()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-bold text-xs">
           Borrar Progreso
         </button>
@@ -644,6 +687,14 @@
   <script>
     // Configure PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    /**
+     * OPCIONAL: Si pegas tu URL de Firebase Realtime Database aquí abajo antes de subir el index.html a GitHub,
+     * todos tus dispositivos (iPhone, iPad, Mac) se conectarán automáticamente sin tener que escribirla en pantalla.
+     * Ejemplo: const DEFAULT_FIREBASE_URL = 'https://eunacom-pro-default-rtdb.firebaseio.com/';
+     */
+    const DEFAULT_FIREBASE_URL = ''; // <-- PEGA AQUÍ TU URL DE FIREBASE SI QUIERES QUE CARGUE AUTOMÁTICO
+    const DEFAULT_USER_SYNC_KEY = 'cristobal_eunacom';
 
     /**
      * Exact Canonical Chapter / Page Maps calibrated to:
@@ -693,6 +744,7 @@
 
     const STORAGE_KEY_PROGRESS = 'eunacom_pro_progress_v1';
     const STORAGE_KEY_THEME = 'eunacom_pro_theme_v1';
+    const STORAGE_KEY_CLOUD_CFG = 'eunacom_pro_cloud_cfg_v1';
     const IDB_NAME = 'EunacomProDB_v1';
     const IDB_STORE = 'questionBankStore';
 
@@ -701,8 +753,17 @@
       unitsMap: new Map(), // unitId -> { id, bank, name, questions: [] }
       pdfDocs: { PEDIATRIA: null, GUEVARA: null },
       progress: {
-        answers: {}, // qId -> { selected: 'a', correct: true, timestamp: 123456 }
+        answers: {},  // qId -> { selected: 'a', correct: true, timestamp: 123456 }
+        deleted: {},  // qId -> timestamp (tombstones so intentional retries sync cleanly across devices)
+        updatedAt: 0
       },
+      cloudConfig: {
+        dbUrl: DEFAULT_FIREBASE_URL,
+        userKey: DEFAULT_USER_SYNC_KEY
+      },
+      syncTimeout: null,
+      isSyncing: false,
+
       bankFilter: 'ALL',
       randomCount: 20,
 
@@ -725,10 +786,20 @@
 
       async init() {
         this.loadTheme();
-        this.loadProgressFromStorage();
+        await this.requestPersistentStorage();
+        await this.loadCloudConfig();
+        await this.loadProgressFromStorage();
         this.setupKeyboardShortcuts();
         this.setupTouchSwipe();
+        this.setupLifecycleSyncListeners();
         this.startTimerLoop();
+
+        // Pull latest progress from Firebase Cloud on startup if configured
+        if (this.isCloudConfigured()) {
+          this.syncWithCloud(false);
+        } else {
+          this.updateCloudStatusUI('local', 'Solo Local');
+        }
 
         // 1. Check IndexedDB cached parsed questions first for instant startup
         const cached = await this.getFromIndexedDB('parsedQuestions');
@@ -750,39 +821,336 @@
         await this.autoFetchAndParsePDFs();
       },
 
-      /* ==================== THEME & STORAGE ==================== */
-      loadTheme() {
-        const saved = localStorage.getItem(STORAGE_KEY_THEME);
-        if (saved === 'light') {
-          document.documentElement.classList.remove('dark');
-        } else {
-          document.documentElement.classList.add('dark');
+      /* ==================== PERSISTENT STORAGE & DUAL BACKUP (LOCALSTORAGE + INDEXEDDB) ==================== */
+      async requestPersistentStorage() {
+        try {
+          if (navigator.storage && navigator.storage.persist) {
+            await navigator.storage.persist();
+          }
+          // Test if localStorage is writable (detects strict iOS Private Mode blocks)
+          const testKey = '__eunacom_test__';
+          localStorage.setItem(testKey, '1');
+          localStorage.removeItem(testKey);
+        } catch (e) {
+          document.getElementById('storageWarningBanner')?.classList.remove('hidden');
         }
+      },
+
+      loadTheme() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY_THEME);
+          if (saved === 'light') {
+            document.documentElement.classList.remove('dark');
+          } else {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
       },
 
       toggleTheme() {
         const isDark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem(STORAGE_KEY_THEME, isDark ? 'dark' : 'light');
+        try {
+          localStorage.setItem(STORAGE_KEY_THEME, isDark ? 'dark' : 'light');
+        } catch (e) {}
       },
 
-      loadProgressFromStorage() {
+      async loadProgressFromStorage() {
+        let localData = null;
         try {
           const raw = localStorage.getItem(STORAGE_KEY_PROGRESS);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (parsed && parsed.answers) this.progress = parsed;
-          }
+          if (raw) localData = JSON.parse(raw);
         } catch (e) {
-          console.error('Error loading progress:', e);
+          console.error('Error reading localStorage progress:', e);
+        }
+
+        // Fallback/Merge with IndexedDB mirror in case iOS cleared localStorage
+        const idbData = await this.getFromIndexedDB('progressMirror');
+        if (localData && idbData) {
+          this.progress = this.mergeProgressObjects(localData, idbData);
+        } else if (localData && localData.answers) {
+          this.progress = {
+            answers: localData.answers || {},
+            deleted: localData.deleted || {},
+            updatedAt: localData.updatedAt || Date.now()
+          };
+        } else if (idbData && idbData.answers) {
+          this.progress = {
+            answers: idbData.answers || {},
+            deleted: idbData.deleted || {},
+            updatedAt: idbData.updatedAt || Date.now()
+          };
         }
       },
 
-      saveProgressToStorage() {
+      saveProgressToStorage(triggerCloud = true) {
+        this.progress.updatedAt = Date.now();
+        if (!this.progress.deleted) this.progress.deleted = {};
+
         try {
           localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(this.progress));
         } catch (e) {
-          console.error('Error saving progress:', e);
+          console.error('Error saving progress to localStorage:', e);
         }
+
+        // Mirror to IndexedDB for extra durability on iOS/iPadOS
+        this.saveToIndexedDB('progressMirror', this.progress);
+
+        // Schedule non-blocking Cloud Push
+        if (triggerCloud && this.isCloudConfigured()) {
+          this.scheduleCloudSync();
+        }
+      },
+
+      /* ==================== FIREBASE REALTIME CLOUD SYNC ENGINE ==================== */
+      async loadCloudConfig() {
+        let saved = null;
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_CLOUD_CFG);
+          if (raw) saved = JSON.parse(raw);
+        } catch (e) {}
+
+        if (!saved) {
+          saved = await this.getFromIndexedDB('cloudConfigMirror');
+        }
+
+        if (saved && saved.dbUrl) {
+          this.cloudConfig.dbUrl = saved.dbUrl.trim();
+          this.cloudConfig.userKey = (saved.userKey || DEFAULT_USER_SYNC_KEY).trim();
+        } else if (DEFAULT_FIREBASE_URL) {
+          this.cloudConfig.dbUrl = DEFAULT_FIREBASE_URL.trim();
+          this.cloudConfig.userKey = DEFAULT_USER_SYNC_KEY;
+        }
+      },
+
+      isCloudConfigured() {
+        return Boolean(this.cloudConfig.dbUrl && this.cloudConfig.dbUrl.startsWith('https://'));
+      },
+
+      getFirebaseEndpointUrl() {
+        if (!this.isCloudConfigured()) return null;
+        let base = this.cloudConfig.dbUrl.trim().replace(/\/+$/, '');
+        // Remove accidental .json if user pasted full path
+        base = base.replace(/\/eunacom_sync\/.*$/, '').replace(/\.json$/, '');
+        const cleanUser = (this.cloudConfig.userKey || DEFAULT_USER_SYNC_KEY).replace(/[^a-zA-Z0-9_-]/g, '_');
+        return `${base}/eunacom_sync/${cleanUser}.json`;
+      },
+
+      updateCloudStatusUI(state, message) {
+        const dot = document.getElementById('cloudStatusDot');
+        const txt = document.getElementById('cloudStatusText');
+        const modalBadge = document.getElementById('modalCloudBadge');
+        const info = document.getElementById('cloudLastSyncInfo');
+
+        if (!dot || !txt) return;
+
+        if (state === 'synced') {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+          txt.textContent = message || '☁️ Sincronizado';
+          if (modalBadge) {
+            modalBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400';
+            modalBadge.textContent = 'Conectado y Activo';
+          }
+          if (info) {
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            info.textContent = `✓ Última sincronización: hoy a las ${timeStr} (${Object.keys(this.progress.answers).length} respuestas guardadas)`;
+          }
+        } else if (state === 'syncing') {
+          dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+          txt.textContent = 'Sincronizando...';
+        } else if (state === 'error') {
+          dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+          txt.textContent = 'Error Nube';
+          if (modalBadge) {
+            modalBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400';
+            modalBadge.textContent = 'Error de conexión';
+          }
+        } else {
+          dot.className = 'w-2 h-2 rounded-full bg-slate-400';
+          txt.textContent = 'Solo Local';
+          if (modalBadge) {
+            modalBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500';
+            modalBadge.textContent = 'Sin configurar';
+          }
+        }
+      },
+
+      /**
+       * Smart Question-Level Timestamp Merge:
+       * Combines answers from Mobile and Tablet so neither device overwrites newer answers from the other,
+       * while respecting intentional question resets (via deleted tombstones).
+       */
+      mergeProgressObjects(progA, progB) {
+        const ansA = (progA && progA.answers) ? progA.answers : {};
+        const ansB = (progB && progB.answers) ? progB.answers : {};
+        const delA = (progA && progA.deleted) ? progA.deleted : {};
+        const delB = (progB && progB.deleted) ? progB.deleted : {};
+
+        const mergedDeleted = { ...delA };
+        for (const [k, tsB] of Object.entries(delB)) {
+          if (!mergedDeleted[k] || tsB > mergedDeleted[k]) {
+            mergedDeleted[k] = tsB;
+          }
+        }
+
+        const allKeys = new Set([...Object.keys(ansA), ...Object.keys(ansB)]);
+        const mergedAnswers = {};
+
+        for (const qId of allKeys) {
+          const a = ansA[qId];
+          const b = ansB[qId];
+          const tsA = a ? (a.timestamp || 1) : 0;
+          const tsB = b ? (b.timestamp || 1) : 0;
+          const latestAns = tsA >= tsB ? a : b;
+          const latestAnsTs = Math.max(tsA, tsB);
+          const delTs = mergedDeleted[qId] || 0;
+
+          if (delTs > latestAnsTs) {
+            // Question was intentionally reset for retry more recently than it was answered
+            continue;
+          }
+          if (latestAns) {
+            mergedAnswers[qId] = latestAns;
+          }
+        }
+
+        return {
+          answers: mergedAnswers,
+          deleted: mergedDeleted,
+          updatedAt: Date.now()
+        };
+      },
+
+      scheduleCloudSync() {
+        if (!this.isCloudConfigured()) return;
+        if (this.syncTimeout) clearTimeout(this.syncTimeout);
+        this.updateCloudStatusUI('syncing');
+        this.syncTimeout = setTimeout(() => {
+          this.syncWithCloud(false);
+        }, 450);
+      },
+
+      async syncWithCloud(showNotification = false) {
+        const endpoint = this.getFirebaseEndpointUrl();
+        if (!endpoint || this.isSyncing) return;
+
+        this.isSyncing = true;
+        this.updateCloudStatusUI('syncing');
+
+        try {
+          // 1. Fetch remote progress from Firebase
+          const getRes = await fetch(endpoint, { cache: 'no-store' });
+          if (!getRes.ok) throw new Error(`HTTP ${getRes.status}`);
+          const remoteData = await getRes.json();
+
+          // 2. Smart merge local & remote
+          if (remoteData && (remoteData.answers || remoteData.deleted)) {
+            this.progress = this.mergeProgressObjects(this.progress, remoteData);
+          }
+
+          // 3. Save merged state locally (without re-triggering loop)
+          this.saveProgressToStorage(false);
+
+          // 4. Push merged state back to Firebase
+          const putRes = await fetch(endpoint, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.progress)
+          });
+          if (!putRes.ok) throw new Error(`PUT HTTP ${putRes.status}`);
+
+          this.updateCloudStatusUI('synced', '☁️ Nube OK');
+
+          // Refresh active view so newly synced answers reflect immediately
+          if (!document.getElementById('dashboardView').classList.contains('hidden')) {
+            this.renderDashboard();
+          } else if (!document.getElementById('setsView').classList.contains('hidden') && this.activeUnitId) {
+            this.openUnitSets(this.activeUnitId);
+          } else if (!document.getElementById('quizView').classList.contains('hidden')) {
+            this.renderCurrentQuestion();
+          }
+
+          if (showNotification) {
+            alert(`¡Sincronización exitosa! Total sincronizado: ${Object.keys(this.progress.answers).length} preguntas respondidas.`);
+          }
+        } catch (err) {
+          console.warn('Error sincronizando con Firebase:', err);
+          this.updateCloudStatusUI('error');
+          if (showNotification) {
+            alert('No se pudo conectar con la URL de Firebase. Verifica que la URL termine en .firebaseio.com/ o .firebasedatabase.app/ y que las Reglas permitan lectura/escritura.');
+          }
+        } finally {
+          this.isSyncing = false;
+        }
+      },
+
+      async saveCloudConfigAndSync() {
+        const urlInput = document.getElementById('firebaseUrlInput')?.value.trim() || '';
+        const keyInput = document.getElementById('firebaseUserKeyInput')?.value.trim() || DEFAULT_USER_SYNC_KEY;
+
+        if (!urlInput) {
+          this.cloudConfig.dbUrl = '';
+          localStorage.removeItem(STORAGE_KEY_CLOUD_CFG);
+          await this.saveToIndexedDB('cloudConfigMirror', null);
+          this.updateCloudStatusUI('local', 'Solo Local');
+          alert('Sincronización en la nube desactivada. Se usará solo memoria local.');
+          return;
+        }
+
+        if (!urlInput.startsWith('https://')) {
+          alert('La URL de Firebase debe comenzar con https://');
+          return;
+        }
+
+        this.cloudConfig.dbUrl = urlInput;
+        this.cloudConfig.userKey = keyInput;
+
+        try {
+          localStorage.setItem(STORAGE_KEY_CLOUD_CFG, JSON.stringify(this.cloudConfig));
+        } catch (e) {}
+        await this.saveToIndexedDB('cloudConfigMirror', this.cloudConfig);
+
+        await this.syncWithCloud(true);
+      },
+
+      async forcePullFromCloud() {
+        if (!this.isCloudConfigured()) {
+          alert('Primero ingresa y guarda tu URL de Firebase arriba.');
+          return;
+        }
+        await this.syncWithCloud(true);
+      },
+
+      async syncNowManual() {
+        if (!this.isCloudConfigured()) {
+          this.openDataModal();
+          return;
+        }
+        await this.syncWithCloud(false);
+      },
+
+      setupLifecycleSyncListeners() {
+        // Automatically pull/push whenever the user switches between iPhone and iPad or returns to Safari
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible' && this.isCloudConfigured()) {
+            this.syncWithCloud(false);
+          }
+        });
+        window.addEventListener('focus', () => {
+          if (this.isCloudConfigured()) {
+            this.syncWithCloud(false);
+          }
+        });
+        window.addEventListener('online', () => {
+          if (this.isCloudConfigured()) {
+            this.syncWithCloud(false);
+          }
+        });
+      },
+
+      markQuestionResetForRetry(qId) {
+        delete this.progress.answers[qId];
+        if (!this.progress.deleted) this.progress.deleted = {};
+        this.progress.deleted[qId] = Date.now();
       },
 
       /* ==================== INDEXEDDB CACHE ==================== */
@@ -1199,7 +1567,6 @@
 
       /* ==================== DASHBOARD & PROGRESO POR UNIDADES ==================== */
       renderDashboard() {
-        // Compute global & per-bank stats
         let totalQ = this.questions.length;
         let answeredQ = 0, correctQ = 0, incorrectQ = 0;
         let pedTotal = 0, pedAns = 0, pedCor = 0;
@@ -1441,7 +1808,6 @@
         if (!unit) return;
         const startIdx = setIndex * 20;
         const slice = unit.questions.slice(startIdx, startIdx + 20);
-        // Jump to first unanswered question if partially completed
         let firstUnanswered = slice.findIndex(q => !this.progress.answers[q.id]);
         if (firstUnanswered === -1) firstUnanswered = 0;
 
@@ -1465,9 +1831,8 @@
         });
         if (filtered.length === 0) return;
 
-        // Clear previous answers for this subset so the user can re-practice them actively
         for (const q of filtered) {
-          delete this.progress.answers[q.id];
+          this.markQuestionResetForRetry(q.id);
         }
         this.saveProgressToStorage();
 
@@ -1529,7 +1894,6 @@
 
         let selectedPool = [];
         if (filterMode === 'SMART_NO_REPEAT') {
-          // Exclude questions already answered correctly; prioritize unanswered and incorrect
           selectedPool = pool.filter(q => {
             const r = this.progress.answers[q.id];
             return !r || !r.correct;
@@ -1552,10 +1916,9 @@
         }
 
         const chosen = this.shuffleArray(selectedPool).slice(0, this.randomCount);
-        // Reset active answer state for chosen questions that were previously answered so the user can practice fresh
         for (const q of chosen) {
           if (this.progress.answers[q.id] && filterMode !== 'ONLY_UNANSWERED') {
-            delete this.progress.answers[q.id];
+            this.markQuestionResetForRetry(q.id);
           }
         }
         this.saveProgressToStorage();
@@ -1584,7 +1947,7 @@
 
         const chosen = this.shuffleArray(pool).slice(0, 20);
         for (const q of chosen) {
-          if (this.progress.answers[q.id]) delete this.progress.answers[q.id];
+          if (this.progress.answers[q.id]) this.markQuestionResetForRetry(q.id);
         }
         this.saveProgressToStorage();
 
@@ -1605,7 +1968,7 @@
           return;
         }
         for (const q of wrong) {
-          delete this.progress.answers[q.id];
+          this.markQuestionResetForRetry(q.id);
         }
         this.saveProgressToStorage();
 
@@ -1630,7 +1993,7 @@
         document.getElementById('summaryView').classList.add('hidden');
         document.getElementById('quizView').classList.remove('hidden');
         document.getElementById('headerTimerBox').classList.remove('hidden');
-        document.getElementById('headerTimerBox').classList.add(' flex');
+        document.getElementById('headerTimerBox').classList.add('flex');
 
         document.getElementById('quizHeaderTitle').textContent = title;
         document.getElementById('quizHeaderSubtitle').textContent = subtitle;
@@ -1674,7 +2037,7 @@
         optsContainer.innerHTML = '';
         const letters = Object.keys(q.options).sort();
 
-        letters.forEach((letter, idx) => {
+        letters.forEach((letter) => {
           const optText = q.options[letter];
           const btn = document.createElement('button');
           btn.type = 'button';
@@ -1751,13 +2114,17 @@
         if (!q || this.progress.answers[q.id]) return;
 
         const isCorrect = letter.toLowerCase() === q.answer.toLowerCase();
+        const now = Date.now();
         this.progress.answers[q.id] = {
           selected: letter.toLowerCase(),
           correct: isCorrect,
-          timestamp: Date.now()
+          timestamp: now
         };
+        if (this.progress.deleted && this.progress.deleted[q.id]) {
+          delete this.progress.deleted[q.id];
+        }
 
-        this.saveProgressToStorage();
+        this.saveProgressToStorage(true);
         this.renderCurrentQuestion();
       },
 
@@ -1882,7 +2249,7 @@
         if (subset.length === 0) return;
 
         for (const q of subset) {
-          delete this.progress.answers[q.id];
+          this.markQuestionResetForRetry(q.id);
         }
         this.saveProgressToStorage();
 
@@ -2061,8 +2428,12 @@
         }, { passive: true });
       },
 
-      /* ==================== JSON EXPORT / IMPORT & RESET ==================== */
+      /* ==================== DATA MODAL, JSON EXPORT / IMPORT & RESET ==================== */
       openDataModal() {
+        const urlEl = document.getElementById('firebaseUrlInput');
+        const keyEl = document.getElementById('firebaseUserKeyInput');
+        if (urlEl) urlEl.value = this.cloudConfig.dbUrl || '';
+        if (keyEl) keyEl.value = this.cloudConfig.userKey || DEFAULT_USER_SYNC_KEY;
         document.getElementById('dataModal').classList.remove('hidden');
       },
 
@@ -2085,15 +2456,15 @@
       importProgressJSON(file) {
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           try {
             const parsed = JSON.parse(e.target.result);
             if (parsed && typeof parsed.answers === 'object') {
-              this.progress = parsed;
-              this.saveProgressToStorage();
+              this.progress = this.mergeProgressObjects(this.progress, parsed);
+              this.saveProgressToStorage(true);
               this.renderDashboard();
               this.closeDataModal();
-              alert('¡Progreso importado correctamente!');
+              alert('¡Progreso importado y fusionado correctamente!');
             } else {
               alert('El archivo JSON no tiene el formato válido de respaldo.');
             }
@@ -2112,10 +2483,22 @@
         await this.autoFetchAndParsePDFs();
       },
 
-      clearAllProgress() {
-        if (!confirm('¿Estás seguro de que deseas borrar todo el historial de respuestas guardadas?')) return;
-        this.progress = { answers: {} };
-        this.saveProgressToStorage();
+      async clearAllProgress() {
+        if (!confirm('¿Estás seguro de que deseas borrar todo el historial de respuestas guardadas (tanto en este dispositivo como en la nube)?')) return;
+        this.progress = { answers: {}, deleted: {}, updatedAt: Date.now() };
+        this.saveProgressToStorage(false);
+
+        const endpoint = this.getFirebaseEndpointUrl();
+        if (endpoint) {
+          try {
+            await fetch(endpoint, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.progress)
+            });
+          } catch (e) {}
+        }
+
         this.renderDashboard();
         this.closeDataModal();
       }
