@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>EUNACOM Pro — Simulador Clínico Interactiva (Guevara & Pediatría)</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            medical: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#1E3A2B',
+              900: '#14281D',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- PDF.js CDN (v3.11.174 stable) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overflow-x: hidden;
+    }
+    .safe-bottom {
+      padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    }
+    .quiz-pb-safe {
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+    @media (min-width: 1024px) {
+      .quiz-pb-safe { padding-bottom: 2.5rem; }
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.55); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade { animation: fadeIn 0.2s ease-out forwards; }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <!-- Brand / Home Button -->
+      <button onclick="app.showDashboard()" class="flex items-center gap-2.5 text-left group focus:outline-none">
+        <div class="w-9 h-9 rounded-xl bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white font-extrabold text-lg shadow-sm group-hover:scale-105 transition-transform">
+          E
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold text-sm sm:text-base tracking-tight text-slate-900 dark:text-white">EUNACOM Pro</span>
+            <span id="dbStatusBadge" class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300/40">
+              Cargando...
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Bancos Guevara &amp; Pediatría</p>
+        </div>
+      </button>
+
+      <!-- Timer Widget (Visible during active quiz) -->
+      <div id="headerTimerBox" class="hidden items-center gap-1.5 bg-slate-100 dark:bg-slate-800/90 px-2.5 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-700">
+        <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span id="timerDisplay" class="font-mono font-bold text-xs sm:text-sm tabular-nums text-slate-800 dark:text-slate-100">00:00</span>
+        <button onclick="app.toggleTimer()" id="timerPauseBtn" title="Pausar/Reanudar temporizador" class="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+          <svg id="timerPauseIcon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+        <button onclick="app.resetTimer()" title="Reiniciar temporizador" class="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right Action Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Manual PDF Load / Settings -->
+        <button onclick="app.openDataModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors" title="Respaldo JSON y Gestión de PDFs">
+          <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+          </svg>
+          <span class="hidden md:inline">Datos / PDF</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button onclick="app.toggleTheme()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors" title="Cambiar modo oscuro/claro">
+          <svg id="themeIconSun" class="w-4 h-4 hidden dark:block text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"/>
+          </svg>
+          <svg id="themeIconMoon" class="w-4 h-4 block dark:hidden text-slate-700" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PDF EXTRACTION BANNER / LOADER -->
+  <div id="loaderBanner" class="bg-slate-900 text-white border-b border-slate-800 px-4 py-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+        <div class="flex items-center gap-2.5">
+          <div id="loaderSpinner" class="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin shrink-0"></div>
+          <span id="loaderStatusText" class="text-xs sm:text-sm font-semibold text-slate-100">
+            Iniciando lectura automática de PDFs desde el repositorio...
+          </span>
+        </div>
+        <span id="loaderPercentText" class="text-xs font-mono text-emerald-400 font-bold">0%</span>
+      </div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div id="loaderProgressBar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%"></div>
+      </div>
+      <!-- Manual Fallback Box (shown if fetch fails on file:// protocol) -->
+      <div id="manualFallbackBox" class="hidden mt-3 pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <p class="text-xs text-amber-300 leading-relaxed">
+          ⚠️ Si abriste <code class="bg-slate-800 px-1 py-0.5 rounded">index.html</code> con doble clic local (<code class="bg-slate-800 px-1 py-0.5 rounded">file://</code>), el navegador bloquea <code class="bg-slate-800 px-1 py-0.5 rounded">fetch</code> por seguridad CORS. En <strong>GitHub Pages</strong> carga automático; aquí puedes seleccionar ambos PDFs manualmente una sola vez (quedarán guardados en caché):
+        </p>
+        <label class="shrink-0 cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          </svg>
+          <span>Seleccionar PDFs locales</span>
+          <input type="file" id="manualPdfInput" accept=".pdf" multiple class="hidden" onchange="app.handleManualFiles(this.files)" />
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
+
+    <!-- ==================== VIEW 1: DASHBOARD & PROGRESO POR UNIDADES ==================== -->
+    <section id="dashboardView" class="space-y-6 animate-fade">
+
+      <!-- Global KPI Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Avance Global</p>
+          <div class="mt-1 flex items-baseline justify-between">
+            <h3 id="kpiGlobalPct" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0%</h3>
+            <span id="kpiGlobalCount" class="text-xs font-semibold text-slate-500 dark:text-slate-400">0 / 0 preg</span>
+          </div>
+          <div class="mt-2.5 w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div id="kpiGlobalBar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Tasa de Acierto</p>
+          <div class="mt-1 flex items-baseline justify-between">
+            <h3 id="kpiAccuracyPct" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">0%</h3>
+            <span id="kpiAccuracyCounts" class="text-xs font-semibold text-slate-500 dark:text-slate-400">0 ✅ · 0 ❌</span>
+          </div>
+          <p class="mt-2 text-[11px] text-slate-400 dark:text-slate-500">Sobre preguntas respondidas</p>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Banco Pediatría</p>
+          <div class="mt-1 flex items-baseline justify-between">
+            <h3 id="kpiPedPct" class="text-xl sm:text-2xl font-extrabold text-sky-600 dark:text-sky-400">0 / 0</h3>
+            <span id="kpiPedAcc" class="text-xs font-semibold text-slate-500">0% acierto</span>
+          </div>
+          <div class="mt-2.5 w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div id="kpiPedBar" class="h-full bg-sky-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Banco Guevara</p>
+          <div class="mt-1 flex items-baseline justify-between">
+            <h3 id="kpiGuevPct" class="text-xl sm:text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">0 / 0</h3>
+            <span id="kpiGuevAcc" class="text-xs font-semibold text-slate-500">0% acierto</span>
+          </div>
+          <div class="mt-2.5 w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div id="kpiGuevBar" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs (Portada) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <div class="inline-flex p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800">
+          <button onclick="app.switchMainTab('units')" id="tabBtnUnits" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">
+            📊 Progreso por Unidades y Sets de 20
+          </button>
+          <button onclick="app.switchMainTab('random')" id="tabBtnRandom" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+            🎲 Modo Random Inteligente
+          </button>
+        </div>
+
+        <!-- Bank Filter Pills -->
+        <div id="unitFilterControls" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div class="inline-flex rounded-xl bg-slate-100 dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800">
+            <button onclick="app.setBankFilter('ALL')" id="filterBankALL" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white">Todos</button>
+            <button onclick="app.setBankFilter('PEDIATRIA')" id="filterBankPEDIATRIA" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Pediatría (14)</button>
+            <button onclick="app.setBankFilter('GUEVARA')" id="filterBankGUEVARA" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Guevara (19)</button>
+          </div>
+          <div class="relative flex-1 sm:w-56">
+            <input type="text" id="unitSearchInput" oninput="app.renderUnitsGrid()" placeholder="Buscar unidad o tema..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500" />
+            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 1 CONTENT: PROGRESO POR UNIDADES -->
+      <div id="tabContentUnits" class="space-y-4">
+        <div id="unitsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated unit cards -->
+        </div>
+      </div>
+
+      <!-- TAB 2 CONTENT: MODO RANDOM INTELIGENTE (SIN REPETIR) -->
+      <div id="tabContentRandom" class="hidden">
+        <div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm space-y-5">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+              🎲
+            </div>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Generador de Ensayo Random Inteligente</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Prioriza automáticamente las preguntas <strong>pendientes o fallidas</strong> y excluye las que ya acertaste anteriormente.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">1. Banco de Origen</label>
+              <select id="randomBankSelect" onchange="app.populateRandomUnitsDropdown()" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
+                <option value="ALL">Ambos Bancos (Pediatría + Guevara)</option>
+                <option value="PEDIATRIA">Solo Banco EUNACOM Pediatría</option>
+                <option value="GUEVARA">Solo Banco EUNACOM Guevara</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">2. Especialidad / Unidad</label>
+              <select id="randomUnitSelect" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
+                <option value="ALL">Todas las unidades del banco seleccionado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">3. Cantidad de Preguntas</label>
+              <div class="grid grid-cols-4 gap-2">
+                <button type="button" onclick="app.setRandomCount(10)" class="rnd-count-btn py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700" data-count="10">10</button>
+                <button type="button" onclick="app.setRandomCount(20)" class="rnd-count-btn py-2 rounded-xl text-xs font-bold border border-emerald-500 bg-emerald-600 text-white" data-count="20">20</button>
+                <button type="button" onclick="app.setRandomCount(40)" class="rnd-count-btn py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700" data-count="40">40</button>
+                <button type="button" onclick="app.setRandomCount(90)" class="rnd-count-btn py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700" data-count="90">90</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">4. Filtro Inteligente</label>
+              <select id="randomFilterMode" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
+                <option value="SMART_NO_REPEAT">Sin repetir acertadas (Pendientes + Incorrectas)</option>
+                <option value="ONLY_UNANSWERED">Solo preguntas nunca respondidas</option>
+                <option value="ONLY_INCORRECT">Solo preguntas falladas (Incorrectas)</option>
+                <option value="ALL_QUESTIONS">Incluir todas (incluso ya acertadas)</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="app.startSmartRandomQuiz()" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+            <span>Iniciar Ensayo Random Inteligente</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: UNIT SETS OF 20 MODAL / DRAWER ==================== -->
+    <section id="setsView" class="hidden space-y-5 animate-fade">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div>
+          <button onclick="app.showDashboard()" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline mb-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Volver a Progreso por Unidades
+          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="setsViewBankBadge" class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/10 text-sky-400">BANCO</span>
+            <h2 id="setsViewTitle" class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">Especialidad</h2>
+          </div>
+          <p id="setsViewSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Bloques estructurados de 20 preguntas</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="setsViewRandomBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition">
+            🎲 20 Random (Sin repetir acertadas)
+          </button>
+          <button id="setsViewWrongBtn" class="px-3.5 py-2 rounded-xl bg-rose-600/10 hover:bg-rose-600/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold transition">
+            ❌ Repasar falladas de la unidad
+          </button>
+        </div>
+      </div>
+
+      <!-- Grid of 20-question blocks -->
+      <div id="setsBlocksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <!-- Populated dynamically -->
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: INTERACTIVE PRACTICE / QUIZ INTERFACE ==================== -->
+    <section id="quizView" class="hidden quiz-pb-safe animate-fade">
+      <!-- Top Quiz Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4 bg-white dark:bg-slate-900 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button onclick="app.exitQuiz()" class="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0" title="Salir al menú">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+          </button>
+          <div class="truncate">
+            <h2 id="quizHeaderTitle" class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">Set 1</h2>
+            <p id="quizHeaderSubtitle" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Especialidad</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span id="quizScorePill" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            0 ✅ · 0 ❌
+          </span>
+          <button onclick="app.finishSetSummary()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition">
+            Finalizar / Resumen
+          </button>
+        </div>
+      </div>
+
+      <!-- Main 2-Column Quiz Layout on Desktop, Single Column + Swipe on Mobile -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- Left / Center Question Card (8 cols on lg) -->
+        <div id="questionTouchArea" class="lg:col-span-8 space-y-4">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-5">
+
+            <!-- Question Meta Badges -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span id="qCounterBadge" class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-600 text-white">
+                  Pregunta 1 / 20
+                </span>
+                <span id="qBankBadge" class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  Guevara
+                </span>
+                <span id="qSubtopicBadge" class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                  Subtema
+                </span>
+              </div>
+
+              <button onclick="app.openPdfPageModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 transition" title="Atajo: tecla V">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <span id="qPageBtnText">Ver lámina PDF (Pág. 1)</span>
+              </button>
+            </div>
+
+            <!-- Yellow Proposed Answer Banner (if question is proposed/unverified in original) -->
+            <div id="qProposedWarning" class="hidden p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5">
+              <span class="text-base leading-none">⚠️</span>
+              <div>
+                <span class="font-extrabold uppercase tracking-wide block text-amber-900 dark:text-amber-200">Respuesta Propuesta (Advertencia del Banco)</span>
+                <p class="mt-0.5">La prueba de origen no traía la respuesta ni la explicación oficial; la alternativa marcada está etiquetada como <strong>Respuesta propuesta</strong> en el PDF original.</p>
+              </div>
+            </div>
+
+            <!-- Question Statement -->
+            <div id="qStatementText" class="text-sm sm:text-base leading-relaxed font-medium text-slate-800 dark:text-slate-100 whitespace-pre-line">
+              Enunciado de la pregunta...
+            </div>
+
+            <!-- Inline Clinical Image Canvas (Auto-displayed when ECG / Rx / Image cue is detected) -->
+            <div id="inlineImageContainer" class="hidden space-y-2 pt-1">
+              <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800/90 px-3 py-1.5 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+                <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
+                  🖼️ Lámina Clínica Detectada en el PDF
+                </span>
+                <button onclick="app.openPdfPageModal()" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                  Ampliar con Zoom 🔍
+                </button>
+              </div>
+              <div onclick="app.openPdfPageModal()" class="cursor-zoom-in bg-white rounded-b-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex justify-center p-2 max-h-96">
+                <canvas id="inlinePdfCanvas" class="max-w-full h-auto object-contain rounded"></canvas>
+              </div>
+            </div>
+
+            <!-- Options List (a - e) -->
+            <div id="qOptionsContainer" class="space-y-2.5 pt-1">
+              <!-- Populated dynamically -->
+            </div>
+
+            <!-- Immediate Feedback & Explanation Panel -->
+            <div id="qFeedbackPanel" class="hidden rounded-2xl border p-4 sm:p-5 space-y-3 transition-all">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span id="qFeedbackStatusBadge" class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase">
+                    CORRECTA
+                  </span>
+                  <span id="qFeedbackProposedTag" class="hidden px-2.5 py-1 rounded-lg text-xs font-extrabold bg-amber-400 text-slate-950">
+                    ⚠️ RESPUESTA PROPUESTA
+                  </span>
+                </div>
+                <span id="qFeedbackSource" class="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                  Fuente: ...
+                </span>
+              </div>
+
+              <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white" id="qFeedbackCorrectLine">
+                Respuesta correcta: ...
+              </div>
+
+              <div id="qFeedbackExplanation" class="text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line pt-2 border-t border-slate-200/70 dark:border-slate-700/70">
+                Explicación detallada...
+              </div>
+            </div>
+
+            <!-- Desktop Prev/Next Footer inside Card -->
+            <div class="hidden sm:flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button onclick="app.prevQuestion()" id="btnPrevDesktop" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+                ← Anterior
+              </button>
+              <span class="text-[11px] text-slate-400">Atajos: Teclas <strong>A-E</strong> o <strong>1-5</strong> · Flechas ←/→ · <strong>V</strong> Lámina</span>
+              <button onclick="app.nextQuestion()" id="btnNextDesktop" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition">
+                Siguiente →
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right Sidebar on Desktop: Question Navigator 1..20 (4 cols on lg) -->
+        <div class="hidden lg:block lg:col-span-4 sticky top-20 space-y-4">
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Navegador del Set</h3>
+              <span id="navProgressTextDesktop" class="text-xs font-semibold text-slate-600 dark:text-slate-300">0/20</span>
+            </div>
+            <div id="questionGridDesktop" class="grid grid-cols-5 gap-2">
+              <!-- 1..20 buttons -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MOBILE FIXED BOTTOM ACTION BAR (Thumb Ergonomics) -->
+      <div class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 pt-2.5 safe-bottom">
+        <div class="max-w-lg mx-auto grid grid-cols-4 gap-2">
+          <button onclick="app.prevQuestion()" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1">
+            <span>← Ant.</span>
+          </button>
+          <button onclick="app.toggleMobileNavSheet(true)" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex flex-col items-center justify-center">
+            <span>Grilla</span>
+            <span id="mobileGridBtnCount" class="text-[10px] text-emerald-500 font-extrabold">1/20</span>
+          </button>
+          <button onclick="app.openPdfPageModal()" class="min-h-[46px] rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 active:scale-95 font-bold text-xs flex items-center justify-center gap-1">
+            <span>🖼️ Lámina</span>
+          </button>
+          <button onclick="app.nextQuestion()" class="min-h-[46px] rounded-xl bg-emerald-600 text-white active:scale-95 font-bold text-xs flex items-center justify-center gap-1 shadow-sm">
+            <span>Sig. →</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MOBILE BOTTOM SHEET FOR QUESTION GRID (1..20) -->
+      <div id="mobileNavSheet" class="fixed inset-0 z-40 hidden">
+        <div onclick="app.toggleMobileNavSheet(false)" class="absolute inset-0 bg-black/60 backdrop-blur-xs"></div>
+        <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl p-5 safe-bottom border-t border-slate-200 dark:border-slate-800 max-h-[75vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Navegador de Preguntas</h3>
+            <button onclick="app.toggleMobileNavSheet(false)" class="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 text-xs font-bold">Cerrar ✕</button>
+          </div>
+          <div id="questionGridMobile" class="grid grid-cols-5 gap-2.5"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: END OF SET SUMMARY & RETRY OPTIONS ==================== -->
+    <section id="summaryView" class="hidden max-w-2xl mx-auto animate-fade">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm text-center space-y-6">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-3xl mx-auto">
+          🏁
+        </div>
+        <div>
+          <h2 id="summaryTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Resumen del Ensayo</h2>
+          <p id="summarySubtitle" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Resultados del bloque</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+            <div id="sumScorePct" class="text-2xl font-extrabold text-emerald-500">0%</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">Rendimiento</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+            <div id="sumCorrectCount" class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">0</div>
+            <div class="text-[11px] text-emerald-700 dark:text-emerald-300 font-medium mt-0.5">Correctas ✅</div>
+          </div>
+          <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+            <div id="sumIncorrectCount" class="text-2xl font-extrabold text-rose-600 dark:text-rose-400">0</div>
+            <div class="text-[11px] text-rose-700 dark:text-rose-300 font-medium mt-0.5">Incorrectas ❌</div>
+          </div>
+        </div>
+
+        <!-- Requested Retry Action Buttons -->
+        <div class="space-y-2.5 pt-2">
+          <button id="btnRetryIncorrect" onclick="app.retryCurrentSetSubset('incorrect')" class="w-full py-3.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2">
+            <span>🔄 Reintentar solo las incorrectas</span>
+          </button>
+
+          <button id="btnRetryCorrect" onclick="app.retryCurrentSetSubset('correct')" class="w-full py-3 px-4 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2">
+            <span>✅ Reintentar solo las correctas</span>
+          </button>
+
+          <button onclick="app.retryCurrentSetSubset('all')" class="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">
+            🔁 Reiniciar este set completo desde cero
+          </button>
+
+          <button onclick="app.returnFromSummary()" class="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition">
+            ← Volver a la Unidad / Portada
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL 1: HIGH-RES CLINICAL IMAGE / PDF PAGE VIEWER ==================== -->
+  <div id="pdfModal" class="fixed inset-0 z-50 hidden flex flex-col bg-black/90 backdrop-blur-sm">
+    <div class="flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 text-white">
+      <div class="flex items-center gap-2 truncate">
+        <span class="text-xs sm:text-sm font-bold truncate" id="pdfModalTitle">Lámina Original del PDF</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button onclick="app.changeModalPage(-1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold" title="Página anterior">◀ Pág</button>
+        <button onclick="app.changeModalPage(1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold" title="Página siguiente">Pág ▶</button>
+        <button onclick="app.zoomModalCanvas(-0.3)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">🔍 -</button>
+        <button onclick="app.zoomModalCanvas(0.3)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">🔍 +</button>
+        <button onclick="app.closePdfPageModal()" class="ml-2 px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-bold">Cerrar ✕</button>
+      </div>
+    </div>
+    <div class="flex-1 overflow-auto flex items-start justify-center p-3 sm:p-6">
+      <canvas id="modalPdfCanvas" class="bg-white rounded-lg shadow-2xl max-w-full"></canvas>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: DATA MANAGEMENT, JSON BACKUP & PDF RELOAD ==================== -->
+  <div id="dataModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Gestión de Progreso y Archivos PDF</h3>
+        <button onclick="app.closeDataModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white">✕</button>
+      </div>
+
+      <!-- JSON Export / Import -->
+      <div class="space-y-2.5">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">1. Sincronizar Progreso (JSON)</h4>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Exporta tu historial de respuestas para respaldarlo o pasarlo entre tu computador y tu celular.</p>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button onclick="app.exportProgressJSON()" class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
+            ⬇️ Exportar JSON
+          </button>
+          <label class="cursor-pointer py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5">
+            ⬆️ Importar JSON
+            <input type="file" accept=".json" class="hidden" onchange="app.importProgressJSON(this.files[0])" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Manual PDF Upload & Re-index -->
+      <div class="space-y-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">2. Fuente de PDFs y Caché IndexedDB</h4>
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          En GitHub Pages se leen automáticamente <code class="px-1 bg-slate-100 dark:bg-slate-800 rounded">./Banco_EUNACOM_Pediatria.pdf</code> y <code class="px-1 bg-slate-100 dark:bg-slate-800 rounded">./Banco_EUNACOM_Guevara.pdf</code>. También puedes cargarlos manualmente aquí:
+        </p>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <label class="flex-1 cursor-pointer py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs text-center">
+            📂 Cargar PDFs manualmente
+            <input type="file" accept=".pdf" multiple class="hidden" onchange="app.handleManualFiles(this.files); app.closeDataModal();" />
+          </label>
+          <button onclick="app.forceReindexPDFs()" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs">
+            🔄 Re-escanear PDFs
+          </button>
+        </div>
+      </div>
+
+      <!-- Danger Zone: Reset Progress -->
+      <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-500">¿Borrar todas las estadísticas guardadas?</span>
+        <button onclick="app.clearAllProgress()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-bold text-xs">
+          Borrar Progreso
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION JAVASCRIPT ENGINE ==================== -->
+  <script>
+    // Configure PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    /**
+     * Exact Canonical Chapter / Page Maps calibrated to:
+     * 1) Banco_EUNACOM_Guevara.pdf (701 pages, 19 chapters, questions start on page 10)
+     * 2) Banco_EUNACOM_Pediatria.pdf (138 pages, 14 chapters, questions start on page 1)
+     */
+    const GUEVARA_CHAPTERS = [
+      { name: "Cardiología", start: 10, end: 56 },
+      { name: "Respiratorio", start: 57, end: 90 },
+      { name: "Gastroenterología", start: 91, end: 120 },
+      { name: "Nefrología", start: 121, end: 173 },
+      { name: "Endocrinología y diabetes", start: 174, end: 228 },
+      { name: "Infectología", start: 229, end: 281 },
+      { name: "Hematología", start: 282, end: 327 },
+      { name: "Reumatología", start: 328, end: 355 },
+      { name: "Neurología", start: 356, end: 396 },
+      { name: "Psiquiatría", start: 397, end: 436 },
+      { name: "Dermatología", start: 437, end: 491 },
+      { name: "Oftalmología", start: 492, end: 512 },
+      { name: "Otorrinolaringología", start: 513, end: 534 },
+      { name: "Urología", start: 535, end: 563 },
+      { name: "Cirugía", start: 564, end: 600 },
+      { name: "Traumatología y ortopedia", start: 601, end: 639 },
+      { name: "Obstetricia", start: 640, end: 663 },
+      { name: "Ginecología", start: 664, end: 678 },
+      { name: "Salud pública", start: 679, end: 705 }
+    ];
+
+    const PEDIATRIA_CHAPTERS = [
+      { name: "Cardiología", start: 1, end: 9 },
+      { name: "Respiratorio y otorrinolaringología", start: 10, end: 20 },
+      { name: "Digestivo y hepatología", start: 21, end: 33 },
+      { name: "Nefrología y urología", start: 34, end: 42 },
+      { name: "Endocrinología y diabetes", start: 43, end: 58 },
+      { name: "Crecimiento, talla y desarrollo psicomotor", start: 59, end: 66 },
+      { name: "Nutrición y alimentación", start: 67, end: 78 },
+      { name: "Hematología y oncología", start: 79, end: 86 },
+      { name: "Infectología y vacunas", start: 87, end: 97 },
+      { name: "Inmunología y reumatología", start: 98, end: 104 },
+      { name: "Neurología", start: 105, end: 119 },
+      { name: "Psiquiatría infantil y maltrato", start: 120, end: 125 },
+      { name: "Traumatología y ortopedia", start: 126, end: 136 },
+      { name: "Intoxicaciones y misceláneos", start: 137, end: 140 }
+    ];
+
+    const IMAGE_CUE_REGEX = /(se muestra a continuaci[oó]n|siguiente electrocardiograma|siguiente trazado|siguiente imagen|mostrando lo siguiente|cardioteca\.com|cardiomedica\.es|researchgate\.net|blogspot\.com)/i;
+
+    const STORAGE_KEY_PROGRESS = 'eunacom_pro_progress_v1';
+    const STORAGE_KEY_THEME = 'eunacom_pro_theme_v1';
+    const IDB_NAME = 'EunacomProDB_v1';
+    const IDB_STORE = 'questionBankStore';
+
+    const app = {
+      questions: [],
+      unitsMap: new Map(), // unitId -> { id, bank, name, questions: [] }
+      pdfDocs: { PEDIATRIA: null, GUEVARA: null },
+      progress: {
+        answers: {}, // qId -> { selected: 'a', correct: true, timestamp: 123456 }
+      },
+      bankFilter: 'ALL',
+      randomCount: 20,
+
+      // Active Quiz State
+      activeUnitId: null,
+      activeQuizTitle: '',
+      activeQuizSubtitle: '',
+      activeQuestions: [],
+      currentIndex: 0,
+
+      // Timer State
+      timerSeconds: 0,
+      timerInterval: null,
+      timerPaused: false,
+
+      // Modal PDF Viewer State
+      modalPdfBank: null,
+      modalPdfPage: 1,
+      modalScale: 1.5,
+
+      async init() {
+        this.loadTheme();
+        this.loadProgressFromStorage();
+        this.setupKeyboardShortcuts();
+        this.setupTouchSwipe();
+        this.startTimerLoop();
+
+        // 1. Check IndexedDB cached parsed questions first for instant startup
+        const cached = await this.getFromIndexedDB('parsedQuestions');
+        if (cached && Array.isArray(cached) && cached.length > 100) {
+          this.questions = cached;
+          this.buildUnitsIndex();
+          this.updateLoader(100, `Banco cargado instantáneamente desde caché (${this.questions.length} preguntas).`);
+          setTimeout(() => {
+            document.getElementById('loaderBanner').classList.add('hidden');
+          }, 900);
+          this.updateBadge(`${this.questions.length} preg listas`);
+          this.renderDashboard();
+          // Load PDF binaries in background for on-demand clinical image rendering
+          this.loadPdfBinariesSilently();
+          return;
+        }
+
+        // 2. Otherwise fetch and parse both PDFs automatically from repository root
+        await this.autoFetchAndParsePDFs();
+      },
+
+      /* ==================== THEME & STORAGE ==================== */
+      loadTheme() {
+        const saved = localStorage.getItem(STORAGE_KEY_THEME);
+        if (saved === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      },
+
+      toggleTheme() {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem(STORAGE_KEY_THEME, isDark ? 'dark' : 'light');
+      },
+
+      loadProgressFromStorage() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY_PROGRESS);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.answers) this.progress = parsed;
+          }
+        } catch (e) {
+          console.error('Error loading progress:', e);
+        }
+      },
+
+      saveProgressToStorage() {
+        try {
+          localStorage.setItem(STORAGE_KEY_PROGRESS, JSON.stringify(this.progress));
+        } catch (e) {
+          console.error('Error saving progress:', e);
+        }
+      },
+
+      /* ==================== INDEXEDDB CACHE ==================== */
+      openIDB() {
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open(IDB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+              db.createObjectStore(IDB_STORE);
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      },
+
+      async saveToIndexedDB(key, val) {
+        try {
+          const db = await this.openIDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put(val, key);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+          });
+        } catch (e) {
+          console.warn('IndexedDB save warning:', e);
+        }
+      },
+
+      async getFromIndexedDB(key) {
+        try {
+          const db = await this.openIDB();
+          return new Promise((resolve, reject) => {
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const req = tx.objectStore(IDB_STORE).get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+          });
+        } catch (e) {
+          return null;
+        }
+      },
+
+      /* ==================== PDF.JS FETCH & PARSER ENGINE ==================== */
+      updateLoader(pct, text) {
+        const bar = document.getElementById('loaderProgressBar');
+        const pctEl = document.getElementById('loaderPercentText');
+        const txtEl = document.getElementById('loaderStatusText');
+        if (bar) bar.style.width = `${Math.min(100, Math.round(pct))}%`;
+        if (pctEl) pctEl.textContent = `${Math.min(100, Math.round(pct))}%`;
+        if (txtEl && text) txtEl.textContent = text;
+      },
+
+      updateBadge(text) {
+        const b = document.getElementById('dbStatusBadge');
+        if (b) {
+          b.textContent = text;
+          b.classList.remove('hidden');
+        }
+      },
+
+      async loadPdfBinariesSilently() {
+        try {
+          const [pedBuf, guevBuf] = await Promise.all([
+            this.getFromIndexedDB('pdfBuffer_PEDIATRIA'),
+            this.getFromIndexedDB('pdfBuffer_GUEVARA')
+          ]);
+          if (pedBuf) {
+            this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: pedBuf.slice(0) }).promise;
+          } else {
+            const r1 = await fetch('./Banco_EUNACOM_Pediatria.pdf');
+            if (r1.ok) {
+              const b1 = await r1.arrayBuffer();
+              await this.saveToIndexedDB('pdfBuffer_PEDIATRIA', b1);
+              this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: b1.slice(0) }).promise;
+            }
+          }
+          if (guevBuf) {
+            this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: guevBuf.slice(0) }).promise;
+          } else {
+            const r2 = await fetch('./Banco_EUNACOM_Guevara.pdf');
+            if (r2.ok) {
+              const b2 = await r2.arrayBuffer();
+              await this.saveToIndexedDB('pdfBuffer_GUEVARA', b2);
+              this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: b2.slice(0) }).promise;
+            }
+          }
+        } catch (e) {
+          // Silent background load
+        }
+      },
+
+      async autoFetchAndParsePDFs() {
+        try {
+          this.updateLoader(2, 'Descargando Banco_EUNACOM_Pediatria.pdf y Banco_EUNACOM_Guevara.pdf...');
+          const [resPed, resGuev] = await Promise.all([
+            fetch('./Banco_EUNACOM_Pediatria.pdf'),
+            fetch('./Banco_EUNACOM_Guevara.pdf')
+          ]);
+
+          if (!resPed.ok || !resGuev.ok) {
+            throw new Error('No se pudieron obtener los PDFs vía fetch.');
+          }
+
+          const [bufPed, bufGuev] = await Promise.all([
+            resPed.arrayBuffer(),
+            resGuev.arrayBuffer()
+          ]);
+
+          await this.processBothPdfBuffers(bufPed, bufGuev);
+        } catch (err) {
+          console.warn('Fetch automático bloqueado o archivos no encontrados en ruta relativa:', err);
+          document.getElementById('loaderSpinner').classList.add('hidden');
+          this.updateLoader(0, 'Esperando selección de archivos PDF (Modo local sin servidor)...');
+          document.getElementById('manualFallbackBox').classList.remove('hidden');
+        }
+      },
+
+      async handleManualFiles(fileList) {
+        if (!fileList || fileList.length === 0) return;
+        document.getElementById('loaderBanner').classList.remove('hidden');
+        document.getElementById('loaderSpinner').classList.remove('hidden');
+        document.getElementById('manualFallbackBox').classList.add('hidden');
+
+        let bufPed = await this.getFromIndexedDB('pdfBuffer_PEDIATRIA');
+        let bufGuev = await this.getFromIndexedDB('pdfBuffer_GUEVARA');
+
+        for (const file of fileList) {
+          const lower = file.name.toLowerCase();
+          const buf = await file.arrayBuffer();
+          if (lower.includes('pediatria') || lower.includes('pediatría')) {
+            bufPed = buf;
+          } else if (lower.includes('guevara')) {
+            bufGuev = buf;
+          } else if (!bufPed) {
+            bufPed = buf;
+          } else {
+            bufGuev = buf;
+          }
+        }
+
+        await this.processBothPdfBuffers(bufPed, bufGuev);
+      },
+
+      async processBothPdfBuffers(bufPed, bufGuev) {
+        const allParsed = [];
+
+        if (bufPed) {
+          await this.saveToIndexedDB('pdfBuffer_PEDIATRIA', bufPed);
+          this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: bufPed.slice(0) }).promise;
+          const pedQuestions = await this.extractQuestionsFromPdfDoc(
+            this.pdfDocs.PEDIATRIA,
+            'PEDIATRIA',
+            1,
+            PEDIATRIA_CHAPTERS,
+            0,
+            20
+          );
+          allParsed.push(...pedQuestions);
+        }
+
+        if (bufGuev) {
+          await this.saveToIndexedDB('pdfBuffer_GUEVARA', bufGuev);
+          this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: bufGuev.slice(0) }).promise;
+          const guevQuestions = await this.extractQuestionsFromPdfDoc(
+            this.pdfDocs.GUEVARA,
+            'GUEVARA',
+            10, // Questions start on page 10 in Banco_EUNACOM_Guevara.pdf
+            GUEVARA_CHAPTERS,
+            20,
+            100
+          );
+          allParsed.push(...guevQuestions);
+        }
+
+        if (allParsed.length > 0) {
+          this.questions = allParsed;
+          await this.saveToIndexedDB('parsedQuestions', this.questions);
+          this.buildUnitsIndex();
+          this.updateLoader(100, `¡Listo! ${this.questions.length} preguntas indexadas correctamente.`);
+          this.updateBadge(`${this.questions.length} preg listas`);
+          setTimeout(() => {
+            document.getElementById('loaderBanner').classList.add('hidden');
+          }, 800);
+          this.renderDashboard();
+        }
+      },
+
+      async extractQuestionsFromPdfDoc(pdfDoc, bankId, startPage, chaptersMap, pctStart, pctEnd) {
+        const numPages = pdfDoc.numPages;
+        const linesWithPages = [];
+        const CHUNK_SIZE = 15; // Mobile anti-crash chunking
+
+        for (let p = startPage; p <= numPages; p++) {
+          const page = await pdfDoc.getPage(p);
+          const textContent = await page.getTextContent();
+
+          // Reconstruct lines from PDF text items using Y coordinate grouping
+          const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
+          items.sort((a, b) => {
+            const yDiff = b.transform[5] - a.transform[5];
+            if (Math.abs(yDiff) > 3.5) return yDiff;
+            return a.transform[4] - b.transform[4];
+          });
+
+          const pageLines = [];
+          let currentLineY = null;
+          let currentLineParts = [];
+
+          for (const it of items) {
+            const y = it.transform[5];
+            if (currentLineY === null || Math.abs(currentLineY - y) <= 3.5) {
+              currentLineParts.push(it.str);
+              if (currentLineY === null) currentLineY = y;
+            } else {
+              pageLines.push(currentLineParts.join(' ').replace(/\s+/g, ' ').trim());
+              currentLineParts = [it.str];
+              currentLineY = y;
+            }
+          }
+          if (currentLineParts.length > 0) {
+            pageLines.push(currentLineParts.join(' ').replace(/\s+/g, ' ').trim());
+          }
+
+          linesWithPages.push({ page: p, lines: pageLines });
+
+          // Clean up page resources to keep mobile memory low
+          if (typeof page.cleanup === 'function') page.cleanup();
+
+          if (p % CHUNK_SIZE === 0 || p === numPages) {
+            const progressRatio = (p - startPage) / Math.max(1, numPages - startPage);
+            const currentPct = pctStart + progressRatio * (pctEnd - pctStart);
+            this.updateLoader(
+              currentPct,
+              `Indexando ${bankId === 'PEDIATRIA' ? 'Banco Pediatría' : 'Banco Guevara'} (página ${p} de ${numPages})...`
+            );
+            await new Promise(r => setTimeout(r, 1));
+          }
+        }
+
+        return this.parseStructuredQuestions(linesWithPages, bankId, chaptersMap);
+      },
+
+      getChapterForPage(chaptersMap, pageNum) {
+        for (const ch of chaptersMap) {
+          if (pageNum >= ch.start && pageNum <= ch.end) return ch.name;
+        }
+        return chaptersMap[chaptersMap.length - 1].name;
+      },
+
+      parseStructuredQuestions(linesWithPages, bankId, chaptersMap) {
+        const extracted = [];
+        let currentSubtopic = '';
+
+        // Flatten all non-trivial lines while preserving page number
+        const flatLines = [];
+        for (const pageObj of linesWithPages) {
+          const p = pageObj.page;
+          for (const rawLine of pageObj.lines) {
+            const line = rawLine.trim();
+            if (!line) continue;
+            // Skip standalone page numbers
+            if (/^\d{1,3}$/.test(line)) continue;
+            // Skip TOC lines containing pipe "| 10" or "Preguntas EUNACOM Pediatría" or "Contenido"
+            if (/\|\s*\d+$/.test(line) || line === 'Contenido' || line === 'Preguntas EUNACOM Pediatría') continue;
+            flatLines.push({ page: p, text: line });
+          }
+        }
+
+        // State machine to parse questions
+        let state = 'IDLE'; // IDLE | STEM | OPTIONS | EXPLANATION
+        let curQ = null;
+        let curOptKey = null;
+
+        const finalizeQuestion = () => {
+          if (!curQ || !curQ.answer) return;
+          curQ.stem = curQ.stem.trim();
+          curQ.explanation = curQ.explanation
+            .replace(/^Explicaci[oó]n\s*:\s*/i, '')
+            .replace(/^La prueba de origen no tra[ií]a la respuesta ni la explicaci[oó]n;[^\n]*\n?/i, '')
+            .trim();
+
+          // Clean OCR artifacts from ECG/Radiographs if present at the end of stem
+          curQ.hasImage = IMAGE_CUE_REGEX.test(curQ.stem);
+
+          const slugUnit = curQ.unit.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+          curQ.id = `${bankId}_${slugUnit}_P${curQ.page}_Q${curQ.num}`;
+          extracted.push(curQ);
+          curQ = null;
+          curOptKey = null;
+        };
+
+        for (let i = 0; i < flatLines.length; i++) {
+          const { page, text } = flatLines[i];
+          const unitForPage = this.getChapterForPage(chaptersMap, page);
+
+          // Check if line is a section/subtopic header like "Hipertensión arterial y dislipidemia (10)"
+          const headerMatch = text.match(/^([A-ZÁÉÍÓÚÑ][^0-9\n]{3,85}?)\s*\(\d+\)\.?$/);
+          if (headerMatch && state === 'IDLE') {
+            const candidateHeader = headerMatch[1].trim();
+            if (candidateHeader.toLowerCase() !== unitForPage.toLowerCase()) {
+              currentSubtopic = candidateHeader;
+            }
+            continue;
+          }
+
+          if (state === 'IDLE') {
+            const qStartMatch = text.match(/^(\d{1,3})\.\s+(.+)/);
+            if (qStartMatch) {
+              curQ = {
+                bank: bankId,
+                unit: unitForPage,
+                subtopic: currentSubtopic || unitForPage,
+                num: parseInt(qStartMatch[1], 10),
+                page: page,
+                stem: qStartMatch[2],
+                options: {},
+                answer: '',
+                isProposed: false,
+                explanation: '',
+                source: ''
+              };
+              state = 'STEM';
+            }
+            continue;
+          }
+
+          if (state === 'STEM') {
+            // Transition to options when option 'a.' appears
+            const optAMatch = text.match(/^([aA])[\.\)]\s+(.+)/);
+            if (optAMatch) {
+              curOptKey = 'a';
+              curQ.options['a'] = optAMatch[2];
+              state = 'OPTIONS';
+            } else {
+              curQ.stem += '\n' + text;
+            }
+            continue;
+          }
+
+          if (state === 'OPTIONS') {
+            const ansMatch = text.match(/^Respuesta\s+(correcta|propuesta)\s*:\s*([a-eA-E])[\.\)]?\s*(.*)/i);
+            if (ansMatch) {
+              curQ.isProposed = ansMatch[1].toLowerCase() === 'propuesta';
+              curQ.answer = ansMatch[2].toLowerCase();
+              curQ.answerText = ansMatch[3] || '';
+              state = 'EXPLANATION';
+              continue;
+            }
+
+            const optMatch = text.match(/^([a-eA-E])[\.\)]\s+(.+)/);
+            if (optMatch) {
+              curOptKey = optMatch[1].toLowerCase();
+              curQ.options[curOptKey] = optMatch[2];
+            } else if (curOptKey) {
+              curQ.options[curOptKey] += ' ' + text;
+            }
+            continue;
+          }
+
+          if (state === 'EXPLANATION') {
+            const fuenteMatch = text.match(/^Fuente\s*:\s*(.*)/i);
+            if (fuenteMatch) {
+              curQ.source = fuenteMatch[1].trim();
+              finalizeQuestion();
+              state = 'IDLE';
+              continue;
+            }
+
+            // Safety check in case a question had no "Fuente:" line and a new header or next question starts
+            if (headerMatch) {
+              const candidateHeader = headerMatch[1].trim();
+              if (candidateHeader.toLowerCase() !== unitForPage.toLowerCase()) {
+                currentSubtopic = candidateHeader;
+              }
+              finalizeQuestion();
+              state = 'IDLE';
+              continue;
+            }
+
+            curQ.explanation += (curQ.explanation ? '\n' : '') + text;
+          }
+        }
+
+        if (curQ && curQ.answer) finalizeQuestion();
+        return extracted;
+      },
+
+      buildUnitsIndex() {
+        this.unitsMap.clear();
+
+        // Initialize canonical order: Pediatría (14 units) + Guevara (19 units)
+        for (const ch of PEDIATRIA_CHAPTERS) {
+          const uid = `PEDIATRIA__${ch.name}`;
+          this.unitsMap.set(uid, { id: uid, bank: 'PEDIATRIA', name: ch.name, questions: [] });
+        }
+        for (const ch of GUEVARA_CHAPTERS) {
+          const uid = `GUEVARA__${ch.name}`;
+          this.unitsMap.set(uid, { id: uid, bank: 'GUEVARA', name: ch.name, questions: [] });
+        }
+
+        for (const q of this.questions) {
+          const uid = `${q.bank}__${q.unit}`;
+          if (!this.unitsMap.has(uid)) {
+            this.unitsMap.set(uid, { id: uid, bank: q.bank, name: q.unit, questions: [] });
+          }
+          this.unitsMap.get(uid).questions.push(q);
+        }
+
+        this.populateRandomUnitsDropdown();
+      },
+
+      /* ==================== DASHBOARD & PROGRESO POR UNIDADES ==================== */
+      renderDashboard() {
+        // Compute global & per-bank stats
+        let totalQ = this.questions.length;
+        let answeredQ = 0, correctQ = 0, incorrectQ = 0;
+        let pedTotal = 0, pedAns = 0, pedCor = 0;
+        let guevTotal = 0, guevAns = 0, guevCor = 0;
+
+        for (const q of this.questions) {
+          const rec = this.progress.answers[q.id];
+          if (q.bank === 'PEDIATRIA') pedTotal++;
+          else guevTotal++;
+
+          if (rec) {
+            answeredQ++;
+            if (rec.correct) correctQ++;
+            else incorrectQ++;
+
+            if (q.bank === 'PEDIATRIA') {
+              pedAns++;
+              if (rec.correct) pedCor++;
+            } else {
+              guevAns++;
+              if (rec.correct) guevCor++;
+            }
+          }
+        }
+
+        const globalPct = totalQ > 0 ? Math.round((answeredQ / totalQ) * 100) : 0;
+        const accPct = answeredQ > 0 ? Math.round((correctQ / answeredQ) * 100) : 0;
+        const pedPct = pedTotal > 0 ? Math.round((pedAns / pedTotal) * 100) : 0;
+        const pedAcc = pedAns > 0 ? Math.round((pedCor / pedAns) * 100) : 0;
+        const guevPct = guevTotal > 0 ? Math.round((guevAns / guevTotal) * 100) : 0;
+        const guevAcc = guevAns > 0 ? Math.round((guevCor / guevAns) * 100) : 0;
+
+        document.getElementById('kpiGlobalPct').textContent = `${globalPct}%`;
+        document.getElementById('kpiGlobalCount').textContent = `${answeredQ} / ${totalQ} preg`;
+        document.getElementById('kpiGlobalBar').style.width = `${globalPct}%`;
+
+        document.getElementById('kpiAccuracyPct').textContent = `${accPct}%`;
+        document.getElementById('kpiAccuracyCounts').textContent = `${correctQ} ✅ · ${incorrectQ} ❌`;
+
+        document.getElementById('kpiPedPct').textContent = `${pedAns} / ${pedTotal}`;
+        document.getElementById('kpiPedAcc').textContent = `${pedAcc}% acierto`;
+        document.getElementById('kpiPedBar').style.width = `${pedPct}%`;
+
+        document.getElementById('kpiGuevPct').textContent = `${guevAns} / ${guevTotal}`;
+        document.getElementById('kpiGuevAcc').textContent = `${guevAcc}% acierto`;
+        document.getElementById('kpiGuevBar').style.width = `${guevPct}%`;
+
+        this.renderUnitsGrid();
+      },
+
+      setBankFilter(filter) {
+        this.bankFilter = filter;
+        ['ALL', 'PEDIATRIA', 'GUEVARA'].forEach(k => {
+          const btn = document.getElementById(`filterBank${k}`);
+          if (k === filter) {
+            btn.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400';
+          }
+        });
+        this.renderUnitsGrid();
+      },
+
+      renderUnitsGrid() {
+        const container = document.getElementById('unitsGrid');
+        const query = (document.getElementById('unitSearchInput')?.value || '').toLowerCase().trim();
+        container.innerHTML = '';
+
+        for (const unit of this.unitsMap.values()) {
+          if (unit.questions.length === 0) continue;
+          if (this.bankFilter !== 'ALL' && unit.bank !== this.bankFilter) continue;
+          if (query && !unit.name.toLowerCase().includes(query)) continue;
+
+          const total = unit.questions.length;
+          let answered = 0, correct = 0;
+          for (const q of unit.questions) {
+            const r = this.progress.answers[q.id];
+            if (r) {
+              answered++;
+              if (r.correct) correct++;
+            }
+          }
+
+          const advPct = Math.round((answered / total) * 100);
+          const accPct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+          const numSets = Math.ceil(total / 20);
+
+          let accBadgeColor = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+          if (answered > 0) {
+            if (accPct >= 75) accBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+            else if (accPct >= 50) accBadgeColor = 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30';
+            else accBadgeColor = 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30';
+          }
+
+          const bankBadge = unit.bank === 'PEDIATRIA'
+            ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`
+            : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
+
+          const card = document.createElement('div');
+          card.className = 'bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm hover:border-emerald-500/60 transition flex flex-col justify-between gap-4';
+          card.innerHTML = `
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between gap-2">
+                ${bankBadge}
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${accBadgeColor}">
+                  ${answered > 0 ? `Acierto: ${accPct}% (${correct}/${answered})` : 'Sin intentos'}
+                </span>
+              </div>
+              <h3 class="text-base font-extrabold text-slate-900 dark:text-white leading-snug">${unit.name}</h3>
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span>Avance: <strong class="text-slate-800 dark:text-slate-200">${answered} / ${total}</strong> preg</span>
+                  <span class="font-bold text-emerald-600 dark:text-emerald-400">${advPct}%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div class="h-full bg-emerald-500 transition-all duration-300" style="width: ${advPct}%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+              <button onclick="app.openUnitSets('${unit.id}')" class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center justify-center gap-1">
+                <span>📋 Sets de 20 (${numSets})</span>
+              </button>
+              <button onclick="app.startUnitSmartRandom('${unit.id}')" class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center gap-1">
+                <span>🎲 Random 20</span>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        }
+      },
+
+      switchMainTab(tab) {
+        const isUnits = tab === 'units';
+        document.getElementById('tabContentUnits').classList.toggle('hidden', !isUnits);
+        document.getElementById('unitFilterControls').classList.toggle('hidden', !isUnits);
+        document.getElementById('tabContentRandom').classList.toggle('hidden', isUnits);
+
+        document.getElementById('tabBtnUnits').className = isUnits
+          ? 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+          : 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+
+        document.getElementById('tabBtnRandom').className = !isUnits
+          ? 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+          : 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+      },
+
+      /* ==================== UNIT SETS OF 20 VIEW ==================== */
+      openUnitSets(unitId) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit) return;
+        this.activeUnitId = unitId;
+
+        document.getElementById('dashboardView').classList.add('hidden');
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('summaryView').classList.add('hidden');
+        document.getElementById('setsView').classList.remove('hidden');
+
+        const badge = document.getElementById('setsViewBankBadge');
+        badge.textContent = unit.bank === 'PEDIATRIA' ? 'BANCO PEDIATRÍA' : 'BANCO GUEVARA';
+        badge.className = unit.bank === 'PEDIATRIA'
+          ? 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/15 text-sky-400'
+          : 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-indigo-500/15 text-indigo-400';
+
+        document.getElementById('setsViewTitle').textContent = unit.name;
+        document.getElementById('setsViewSubtitle').textContent = `${unit.questions.length} preguntas totales divididas en bloques secuenciales de 20`;
+
+        document.getElementById('setsViewRandomBtn').onclick = () => this.startUnitSmartRandom(unitId);
+        document.getElementById('setsViewWrongBtn').onclick = () => this.startUnitWrongOnly(unitId);
+
+        const grid = document.getElementById('setsBlocksGrid');
+        grid.innerHTML = '';
+
+        const total = unit.questions.length;
+        const numSets = Math.ceil(total / 20);
+
+        for (let s = 0; s < numSets; s++) {
+          const startIdx = s * 20;
+          const slice = unit.questions.slice(startIdx, startIdx + 20);
+          const firstNum = slice[0].num;
+          const lastNum = slice[slice.length - 1].num;
+
+          let ans = 0, cor = 0, inc = 0;
+          for (const q of slice) {
+            const r = this.progress.answers[q.id];
+            if (r) {
+              ans++;
+              if (r.correct) cor++;
+              else inc++;
+            }
+          }
+
+          const pct = Math.round((ans / slice.length) * 100);
+          const acc = ans > 0 ? Math.round((cor / ans) * 100) : 0;
+
+          let statusLabel = 'Pendiente';
+          let statusClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+          if (ans === slice.length) {
+            statusLabel = `Completado · ${acc}%`;
+            statusClass = acc >= 75
+              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+              : 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+          } else if (ans > 0) {
+            statusLabel = `En curso (${ans}/${slice.length})`;
+            statusClass = 'bg-sky-500/15 text-sky-600 dark:text-sky-400';
+          }
+
+          const blockCard = document.createElement('div');
+          blockCard.className = 'bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-col justify-between gap-3';
+          blockCard.innerHTML = `
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-extrabold text-slate-900 dark:text-white">Prueba ${s + 1} <span class="text-xs font-normal text-slate-500">(Preg. ${firstNum}–${lastNum})</span></span>
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${statusClass}">${statusLabel}</span>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-500">
+                <span>${cor} ✅ · ${inc} ❌ · ${slice.length - ans} ⏳</span>
+                <span>${pct}%</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-500" style="width: ${pct}%"></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+              <button onclick="app.startFixedSet('${unitId}', ${s})" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
+                ${ans > 0 && ans < slice.length ? 'Continuar Prueba' : 'Rendir Prueba'}
+              </button>
+              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas de esta prueba" class="py-2 px-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌ (${inc})</button>` : ''}
+            </div>
+          `;
+          grid.appendChild(blockCard);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+
+      startFixedSet(unitId, setIndex) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit) return;
+        const startIdx = setIndex * 20;
+        const slice = unit.questions.slice(startIdx, startIdx + 20);
+        // Jump to first unanswered question if partially completed
+        let firstUnanswered = slice.findIndex(q => !this.progress.answers[q.id]);
+        if (firstUnanswered === -1) firstUnanswered = 0;
+
+        this.launchQuizSession(
+          slice,
+          `${unit.name} — Prueba ${setIndex + 1}`,
+          `Banco ${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'} · Bloque fijo de ${slice.length} preguntas`,
+          firstUnanswered
+        );
+      },
+
+      startFixedSetSubset(unitId, setIndex, mode) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit) return;
+        const startIdx = setIndex * 20;
+        const slice = unit.questions.slice(startIdx, startIdx + 20);
+        const filtered = slice.filter(q => {
+          const r = this.progress.answers[q.id];
+          if (!r) return false;
+          return mode === 'incorrect' ? !r.correct : r.correct;
+        });
+        if (filtered.length === 0) return;
+
+        // Clear previous answers for this subset so the user can re-practice them actively
+        for (const q of filtered) {
+          delete this.progress.answers[q.id];
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          filtered,
+          `${unit.name} — Prueba ${setIndex + 1} (${mode === 'incorrect' ? 'Solo Incorrectas' : 'Solo Correctas'})`,
+          `Repaso focalizado de ${filtered.length} preguntas`,
+          0
+        );
+      },
+
+      /* ==================== SMART RANDOM MODE (NO REPEATS) ==================== */
+      populateRandomUnitsDropdown() {
+        const bankSel = document.getElementById('randomBankSelect').value;
+        const unitSel = document.getElementById('randomUnitSelect');
+        unitSel.innerHTML = '<option value="ALL">Todas las especialidades / unidades</option>';
+
+        for (const unit of this.unitsMap.values()) {
+          if (unit.questions.length === 0) continue;
+          if (bankSel !== 'ALL' && unit.bank !== bankSel) continue;
+          const opt = document.createElement('option');
+          opt.value = unit.id;
+          opt.textContent = `[${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'}] ${unit.name} (${unit.questions.length})`;
+          unitSel.appendChild(opt);
+        }
+      },
+
+      setRandomCount(n) {
+        this.randomCount = n;
+        document.querySelectorAll('.rnd-count-btn').forEach(btn => {
+          const c = parseInt(btn.getAttribute('data-count'), 10);
+          if (c === n) {
+            btn.className = 'rnd-count-btn py-2 rounded-xl text-xs font-bold border border-emerald-500 bg-emerald-600 text-white';
+          } else {
+            btn.className = 'rnd-count-btn py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700';
+          }
+        });
+      },
+
+      shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      },
+
+      startSmartRandomQuiz() {
+        const bankVal = document.getElementById('randomBankSelect').value;
+        const unitVal = document.getElementById('randomUnitSelect').value;
+        const filterMode = document.getElementById('randomFilterMode').value;
+
+        let pool = this.questions.filter(q => {
+          if (bankVal !== 'ALL' && q.bank !== bankVal) return false;
+          if (unitVal !== 'ALL' && `${q.bank}__${q.unit}` !== unitVal) return false;
+          return true;
+        });
+
+        let selectedPool = [];
+        if (filterMode === 'SMART_NO_REPEAT') {
+          // Exclude questions already answered correctly; prioritize unanswered and incorrect
+          selectedPool = pool.filter(q => {
+            const r = this.progress.answers[q.id];
+            return !r || !r.correct;
+          });
+          if (selectedPool.length === 0) {
+            alert('¡Felicitaciones! Ya has respondido correctamente todas las preguntas de esta selección. Se incluirán todas para repaso.');
+            selectedPool = pool;
+          }
+        } else if (filterMode === 'ONLY_UNANSWERED') {
+          selectedPool = pool.filter(q => !this.progress.answers[q.id]);
+        } else if (filterMode === 'ONLY_INCORRECT') {
+          selectedPool = pool.filter(q => this.progress.answers[q.id] && !this.progress.answers[q.id].correct);
+        } else {
+          selectedPool = pool;
+        }
+
+        if (selectedPool.length === 0) {
+          alert('No hay preguntas que coincidan con este filtro en la unidad seleccionada.');
+          return;
+        }
+
+        const chosen = this.shuffleArray(selectedPool).slice(0, this.randomCount);
+        // Reset active answer state for chosen questions that were previously answered so the user can practice fresh
+        for (const q of chosen) {
+          if (this.progress.answers[q.id] && filterMode !== 'ONLY_UNANSWERED') {
+            delete this.progress.answers[q.id];
+          }
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          chosen,
+          `Ensayo Random Inteligente (${chosen.length} preg)`,
+          filterMode === 'SMART_NO_REPEAT' ? 'Excluyendo preguntas ya acertadas' : 'Práctica personalizada',
+          0
+        );
+      },
+
+      startUnitSmartRandom(unitId) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit) return;
+        this.activeUnitId = unitId;
+
+        let pool = unit.questions.filter(q => {
+          const r = this.progress.answers[q.id];
+          return !r || !r.correct;
+        });
+
+        if (pool.length === 0) {
+          pool = [...unit.questions];
+        }
+
+        const chosen = this.shuffleArray(pool).slice(0, 20);
+        for (const q of chosen) {
+          if (this.progress.answers[q.id]) delete this.progress.answers[q.id];
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          chosen,
+          `${unit.name} — 20 Random`,
+          `Modo Sin Repetir Acertadas · Banco ${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'}`,
+          0
+        );
+      },
+
+      startUnitWrongOnly(unitId) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit) return;
+        const wrong = unit.questions.filter(q => this.progress.answers[q.id] && !this.progress.answers[q.id].correct);
+        if (wrong.length === 0) {
+          alert('No tienes preguntas marcadas como incorrectas en esta unidad.');
+          return;
+        }
+        for (const q of wrong) {
+          delete this.progress.answers[q.id];
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          wrong,
+          `${unit.name} — Repaso de Incorrectas`,
+          `${wrong.length} preguntas falladas en esta unidad`,
+          0
+        );
+      },
+
+      /* ==================== ACTIVE QUIZ SESSION & IMMEDIATE FEEDBACK ==================== */
+      launchQuizSession(questionsList, title, subtitle, startIndex = 0) {
+        this.activeQuestions = questionsList;
+        this.activeQuizTitle = title;
+        this.activeQuizSubtitle = subtitle;
+        this.currentIndex = startIndex;
+        this.resetTimer();
+
+        document.getElementById('dashboardView').classList.add('hidden');
+        document.getElementById('setsView').classList.add('hidden');
+        document.getElementById('summaryView').classList.add('hidden');
+        document.getElementById('quizView').classList.remove('hidden');
+        document.getElementById('headerTimerBox').classList.remove('hidden');
+        document.getElementById('headerTimerBox').classList.add(' flex');
+
+        document.getElementById('quizHeaderTitle').textContent = title;
+        document.getElementById('quizHeaderSubtitle').textContent = subtitle;
+
+        this.renderCurrentQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+
+      renderCurrentQuestion() {
+        const q = this.activeQuestions[this.currentIndex];
+        if (!q) return;
+
+        const total = this.activeQuestions.length;
+        const ansRecord = this.progress.answers[q.id];
+
+        document.getElementById('qCounterBadge').textContent = `Pregunta ${this.currentIndex + 1} / ${total} (#${q.num})`;
+        document.getElementById('qBankBadge').textContent = q.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara';
+        document.getElementById('qSubtopicBadge').textContent = q.subtopic || q.unit;
+        document.getElementById('qPageBtnText').textContent = `Ver lámina (Pág. ${q.page})`;
+        document.getElementById('mobileGridBtnCount').textContent = `${this.currentIndex + 1}/${total}`;
+
+        // Proposed Answer Warning Banner
+        const propWarn = document.getElementById('qProposedWarning');
+        if (q.isProposed) propWarn.classList.remove('hidden');
+        else propWarn.classList.add('hidden');
+
+        // Question Statement
+        document.getElementById('qStatementText').textContent = q.stem;
+
+        // Inline Clinical Image Render if question has image cue
+        const inlineImgBox = document.getElementById('inlineImageContainer');
+        if (q.hasImage && this.pdfDocs[q.bank]) {
+          inlineImgBox.classList.remove('hidden');
+          this.renderPdfPageToCanvas(q.bank, q.page, document.getElementById('inlinePdfCanvas'), 1.25);
+        } else {
+          inlineImgBox.classList.add('hidden');
+        }
+
+        // Render Options (a - e)
+        const optsContainer = document.getElementById('qOptionsContainer');
+        optsContainer.innerHTML = '';
+        const letters = Object.keys(q.options).sort();
+
+        letters.forEach((letter, idx) => {
+          const optText = q.options[letter];
+          const btn = document.createElement('button');
+          btn.type = 'button';
+
+          let baseClass = 'w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all flex items-start gap-3 group ';
+          let badgeClass = 'w-7 h-7 rounded-lg font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 transition-colors ';
+
+          if (!ansRecord) {
+            baseClass += 'bg-slate-50/70 hover:bg-emerald-500/5 dark:bg-slate-800/50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700/80 hover:border-emerald-500/60';
+            badgeClass += 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 group-hover:border-emerald-500 group-hover:text-emerald-500';
+            btn.onclick = () => this.selectOption(letter);
+          } else {
+            const isCorrectLetter = letter === q.answer;
+            const isSelectedLetter = letter === ansRecord.selected;
+
+            if (isCorrectLetter) {
+              baseClass += 'bg-emerald-500/15 border-2 border-emerald-500 text-emerald-950 dark:text-emerald-100 font-semibold';
+              badgeClass += 'bg-emerald-600 text-white';
+            } else if (isSelectedLetter && !isCorrectLetter) {
+              baseClass += 'bg-rose-500/15 border-2 border-rose-500 text-rose-950 dark:text-rose-100';
+              badgeClass += 'bg-rose-600 text-white';
+            } else {
+              baseClass += 'bg-slate-50/40 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800 opacity-60';
+              badgeClass += 'bg-slate-200 dark:bg-slate-800 text-slate-500';
+            }
+          }
+
+          btn.className = baseClass;
+          btn.innerHTML = `
+            <span class="${badgeClass}">${letter.toUpperCase()}</span>
+            <span class="text-xs sm:text-sm leading-relaxed flex-1">${optText}</span>
+          `;
+          optsContainer.appendChild(btn);
+        });
+
+        // Render Immediate Feedback Panel
+        const fbPanel = document.getElementById('qFeedbackPanel');
+        if (ansRecord) {
+          fbPanel.classList.remove('hidden');
+          const statusBadge = document.getElementById('qFeedbackStatusBadge');
+          const propTag = document.getElementById('qFeedbackProposedTag');
+
+          if (ansRecord.correct) {
+            fbPanel.className = 'rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 sm:p-5 space-y-3 animate-fade';
+            statusBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase bg-emerald-600 text-white';
+            statusBadge.textContent = '✓ ¡Respuesta Correcta!';
+          } else {
+            fbPanel.className = 'rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 sm:p-5 space-y-3 animate-fade';
+            statusBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase bg-rose-600 text-white';
+            statusBadge.textContent = `✕ Incorrecta (Marcaste ${ansRecord.selected.toUpperCase()})`;
+          }
+
+          if (q.isProposed) propTag.classList.remove('hidden');
+          else propTag.classList.add('hidden');
+
+          document.getElementById('qFeedbackSource').textContent = `Fuente: ${q.source || `${q.unit} P${q.num}`} · Pág. ${q.page}`;
+          document.getElementById('qFeedbackCorrectLine').textContent =
+            `${q.isProposed ? 'Respuesta propuesta' : 'Respuesta correcta'}: ${q.answer.toUpperCase()}. ${q.options[q.answer] || q.answerText || ''}`;
+
+          document.getElementById('qFeedbackExplanation').textContent = q.explanation
+            ? q.explanation
+            : (q.isProposed
+              ? 'La prueba de origen no traía la respuesta ni la explicación; la alternativa indicada es una propuesta y no proviene del curso.'
+              : 'Sin explicación adicional en el documento original.');
+        } else {
+          fbPanel.classList.add('hidden');
+        }
+
+        this.updateQuizNavGrids();
+      },
+
+      selectOption(letter) {
+        const q = this.activeQuestions[this.currentIndex];
+        if (!q || this.progress.answers[q.id]) return;
+
+        const isCorrect = letter.toLowerCase() === q.answer.toLowerCase();
+        this.progress.answers[q.id] = {
+          selected: letter.toLowerCase(),
+          correct: isCorrect,
+          timestamp: Date.now()
+        };
+
+        this.saveProgressToStorage();
+        this.renderCurrentQuestion();
+      },
+
+      updateQuizNavGrids() {
+        const total = this.activeQuestions.length;
+        let cor = 0, inc = 0, ans = 0;
+
+        const buildGrid = (container, isMobile) => {
+          if (!container) return;
+          container.innerHTML = '';
+          this.activeQuestions.forEach((q, idx) => {
+            const r = this.progress.answers[q.id];
+            const btn = document.createElement('button');
+            let cls = 'h-10 rounded-xl font-bold text-xs transition flex items-center justify-center border ';
+
+            if (idx === this.currentIndex) {
+              cls += 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900 ';
+            }
+
+            if (!r) {
+              cls += 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+            } else if (r.correct) {
+              cls += 'bg-emerald-600 text-white border-emerald-500';
+            } else {
+              cls += 'bg-rose-600 text-white border-rose-500';
+            }
+
+            btn.className = cls;
+            btn.textContent = idx + 1;
+            btn.onclick = () => {
+              this.currentIndex = idx;
+              if (isMobile) this.toggleMobileNavSheet(false);
+              this.renderCurrentQuestion();
+            };
+            container.appendChild(btn);
+          });
+        };
+
+        for (const q of this.activeQuestions) {
+          const r = this.progress.answers[q.id];
+          if (r) {
+            ans++;
+            if (r.correct) cor++;
+            else inc++;
+          }
+        }
+
+        document.getElementById('quizScorePill').textContent = `${cor} ✅ · ${inc} ❌`;
+        document.getElementById('navProgressTextDesktop').textContent = `${ans} / ${total}`;
+
+        buildGrid(document.getElementById('questionGridDesktop'), false);
+        buildGrid(document.getElementById('questionGridMobile'), true);
+      },
+
+      prevQuestion() {
+        if (this.currentIndex > 0) {
+          this.currentIndex--;
+          this.renderCurrentQuestion();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      },
+
+      nextQuestion() {
+        if (this.currentIndex < this.activeQuestions.length - 1) {
+          this.currentIndex++;
+          this.renderCurrentQuestion();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          this.finishSetSummary();
+        }
+      },
+
+      toggleMobileNavSheet(show) {
+        const sheet = document.getElementById('mobileNavSheet');
+        if (show) sheet.classList.remove('hidden');
+        else sheet.classList.add('hidden');
+      },
+
+      /* ==================== END OF SET SUMMARY & RETRY LOGIC ==================== */
+      finishSetSummary() {
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('summaryView').classList.remove('hidden');
+
+        let cor = 0, inc = 0;
+        for (const q of this.activeQuestions) {
+          const r = this.progress.answers[q.id];
+          if (r) {
+            if (r.correct) cor++;
+            else inc++;
+          }
+        }
+
+        const totalAnswered = cor + inc;
+        const pct = totalAnswered > 0 ? Math.round((cor / totalAnswered) * 100) : 0;
+
+        document.getElementById('summaryTitle').textContent = this.activeQuizTitle;
+        document.getElementById('summarySubtitle').textContent = `Respondiste ${totalAnswered} de ${this.activeQuestions.length} preguntas en ${document.getElementById('timerDisplay').textContent}`;
+        document.getElementById('sumScorePct').textContent = `${pct}%`;
+        document.getElementById('sumCorrectCount').textContent = cor;
+        document.getElementById('sumIncorrectCount').textContent = inc;
+
+        const btnInc = document.getElementById('btnRetryIncorrect');
+        const btnCor = document.getElementById('btnRetryCorrect');
+        btnInc.classList.toggle('hidden', inc === 0);
+        btnInc.textContent = `🔄 Reintentar solo las incorrectas (${inc})`;
+        btnCor.classList.toggle('hidden', cor === 0);
+        btnCor.textContent = `✅ Reintentar solo las correctas (${cor})`;
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+
+      retryCurrentSetSubset(mode) {
+        let subset = [];
+        if (mode === 'incorrect') {
+          subset = this.activeQuestions.filter(q => this.progress.answers[q.id] && !this.progress.answers[q.id].correct);
+        } else if (mode === 'correct') {
+          subset = this.activeQuestions.filter(q => this.progress.answers[q.id] && this.progress.answers[q.id].correct);
+        } else {
+          subset = [...this.activeQuestions];
+        }
+
+        if (subset.length === 0) return;
+
+        for (const q of subset) {
+          delete this.progress.answers[q.id];
+        }
+        this.saveProgressToStorage();
+
+        const label = mode === 'incorrect' ? 'Reintento Incorrectas' : mode === 'correct' ? 'Reintento Correctas' : 'Reinicio Completo';
+        this.launchQuizSession(subset, `${this.activeQuizTitle} (${label})`, `${subset.length} preguntas`, 0);
+      },
+
+      returnFromSummary() {
+        document.getElementById('headerTimerBox').classList.add('hidden');
+        if (this.activeUnitId) {
+          this.openUnitSets(this.activeUnitId);
+        } else {
+          this.showDashboard();
+        }
+      },
+
+      exitQuiz() {
+        document.getElementById('headerTimerBox').classList.add('hidden');
+        if (this.activeUnitId) {
+          this.openUnitSets(this.activeUnitId);
+        } else {
+          this.showDashboard();
+        }
+      },
+
+      showDashboard() {
+        this.activeUnitId = null;
+        document.getElementById('quizView').classList.add('hidden');
+        document.getElementById('setsView').classList.add('hidden');
+        document.getElementById('summaryView').classList.add('hidden');
+        document.getElementById('headerTimerBox').classList.add('hidden');
+        document.getElementById('dashboardView').classList.remove('hidden');
+        this.renderDashboard();
+      },
+
+      /* ==================== PDF PAGE / CLINICAL IMAGE VIEWER ==================== */
+      async renderPdfPageToCanvas(bankId, pageNum, canvas, scale = 1.5) {
+        const pdfDoc = this.pdfDocs[bankId];
+        if (!pdfDoc || !canvas) return;
+        try {
+          const page = await pdfDoc.getPage(pageNum);
+          const viewport = page.getViewport({ scale });
+          const ctx = canvas.getContext('2d');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+        } catch (e) {
+          console.error('Error rendering PDF page:', e);
+        }
+      },
+
+      async openPdfPageModal() {
+        const q = this.activeQuestions[this.currentIndex];
+        if (!q) return;
+
+        if (!this.pdfDocs[q.bank]) {
+          alert('Para visualizar la lámina original del PDF, asegúrate de que el PDF esté cargado en la sesión.');
+          return;
+        }
+
+        this.modalPdfBank = q.bank;
+        this.modalPdfPage = q.page;
+        this.modalScale = window.innerWidth < 640 ? 1.2 : 1.6;
+
+        document.getElementById('pdfModal').classList.remove('hidden');
+        await this.refreshModalCanvas();
+      },
+
+      async refreshModalCanvas() {
+        document.getElementById('pdfModalTitle').textContent =
+          `Lámina PDF (${this.modalPdfBank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'} — Página ${this.modalPdfPage})`;
+        await this.renderPdfPageToCanvas(
+          this.modalPdfBank,
+          this.modalPdfPage,
+          document.getElementById('modalPdfCanvas'),
+          this.modalScale
+        );
+      },
+
+      async changeModalPage(delta) {
+        const doc = this.pdfDocs[this.modalPdfBank];
+        if (!doc) return;
+        const nextP = this.modalPdfPage + delta;
+        if (nextP >= 1 && nextP <= doc.numPages) {
+          this.modalPdfPage = nextP;
+          await this.refreshModalCanvas();
+        }
+      },
+
+      async zoomModalCanvas(delta) {
+        this.modalScale = Math.max(0.6, Math.min(3.2, this.modalScale + delta));
+        await this.refreshModalCanvas();
+      },
+
+      closePdfPageModal() {
+        document.getElementById('pdfModal').classList.add('hidden');
+      },
+
+      /* ==================== TIMER, KEYBOARD & SWIPE ERGONOMICS ==================== */
+      startTimerLoop() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        this.timerInterval = setInterval(() => {
+          if (!this.timerPaused && !document.getElementById('quizView').classList.contains('hidden')) {
+            this.timerSeconds++;
+            this.updateTimerUI();
+          }
+        }, 1000);
+      },
+
+      updateTimerUI() {
+        const mins = String(Math.floor(this.timerSeconds / 60)).padStart(2, '0');
+        const secs = String(this.timerSeconds % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+      },
+
+      toggleTimer() {
+        this.timerPaused = !this.timerPaused;
+        const disp = document.getElementById('timerDisplay');
+        disp.classList.toggle('opacity-40', this.timerPaused);
+      },
+
+      resetTimer() {
+        this.timerSeconds = 0;
+        this.timerPaused = false;
+        this.updateTimerUI();
+      },
+
+      setupKeyboardShortcuts() {
+        window.addEventListener('keydown', (e) => {
+          if (document.getElementById('quizView').classList.contains('hidden')) return;
+          if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+          const key = e.key.toLowerCase();
+          const mapNum = { '1': 'a', '2': 'b', '3': 'c', '4': 'd', '5': 'e' };
+
+          if (['a', 'b', 'c', 'd', 'e'].includes(key)) {
+            e.preventDefault();
+            this.selectOption(key);
+          } else if (mapNum[key]) {
+            e.preventDefault();
+            this.selectOption(mapNum[key]);
+          } else if (e.key === 'ArrowRight' || e.key === ' ') {
+            e.preventDefault();
+            this.nextQuestion();
+          } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            this.prevQuestion();
+          } else if (key === 'v') {
+            e.preventDefault();
+            const modalHidden = document.getElementById('pdfModal').classList.contains('hidden');
+            if (modalHidden) this.openPdfPageModal();
+            else this.closePdfPageModal();
+          } else if (e.key === 'Escape') {
+            this.closePdfPageModal();
+            this.toggleMobileNavSheet(false);
+          }
+        });
+      },
+
+      setupTouchSwipe() {
+        const area = document.getElementById('questionTouchArea');
+        let startX = 0, startY = 0;
+
+        area.addEventListener('touchstart', (e) => {
+          startX = e.changedTouches[0].screenX;
+          startY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        area.addEventListener('touchend', (e) => {
+          const dx = e.changedTouches[0].screenX - startX;
+          const dy = e.changedTouches[0].screenY - startY;
+          if (Math.abs(dx) > 75 && Math.abs(dx) > Math.abs(dy) * 1.8) {
+            if (dx < 0) this.nextQuestion();
+            else this.prevQuestion();
+          }
+        }, { passive: true });
+      },
+
+      /* ==================== JSON EXPORT / IMPORT & RESET ==================== */
+      openDataModal() {
+        document.getElementById('dataModal').classList.remove('hidden');
+      },
+
+      closeDataModal() {
+        document.getElementById('dataModal').classList.add('hidden');
+      },
+
+      exportProgressJSON() {
+        const dataStr = JSON.stringify(this.progress, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const date = new Date().toISOString().slice(0, 10);
+        a.href = url;
+        a.download = `Progreso_EUNACOM_${date}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      importProgressJSON(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            if (parsed && typeof parsed.answers === 'object') {
+              this.progress = parsed;
+              this.saveProgressToStorage();
+              this.renderDashboard();
+              this.closeDataModal();
+              alert('¡Progreso importado correctamente!');
+            } else {
+              alert('El archivo JSON no tiene el formato válido de respaldo.');
+            }
+          } catch (err) {
+            alert('Error al leer el archivo JSON.');
+          }
+        };
+        reader.readAsText(file);
+      },
+
+      async forceReindexPDFs() {
+        this.closeDataModal();
+        await this.saveToIndexedDB('parsedQuestions', null);
+        document.getElementById('loaderBanner').classList.remove('hidden');
+        document.getElementById('loaderSpinner').classList.remove('hidden');
+        await this.autoFetchAndParsePDFs();
+      },
+
+      clearAllProgress() {
+        if (!confirm('¿Estás seguro de que deseas borrar todo el historial de respuestas guardadas?')) return;
+        this.progress = { answers: {} };
+        this.saveProgressToStorage();
+        this.renderDashboard();
+        this.closeDataModal();
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+</body>
+</html>
