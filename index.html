@@ -199,10 +199,12 @@
             <h3 id="kpiAccuracyPct" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">0%</h3>
             <span id="kpiAccuracyCounts" class="text-xs font-semibold text-slate-500 dark:text-slate-400">0 ✅ · 0 ❌</span>
           </div>
-          <div class="mt-2 flex items-center justify-between gap-1">
-            <span class="text-[11px] text-slate-400 dark:text-slate-500">Estado actual</span>
+          <div class="mt-2 flex flex-wrap items-center justify-between gap-1">
             <button onclick="app.startGlobalEverFailedQuiz()" id="kpiEverFailedBadge" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline" title="Hacer ensayo con preguntas del historial de fallos">
-              📌 0 en historial de falladas
+              📌 0 hist. fallos
+            </button>
+            <button onclick="app.switchMainTab('saved')" id="kpiBookmarkedBadge" class="text-[11px] font-bold text-violet-600 dark:text-violet-400 hover:underline" title="Ver tus preguntas guardadas por capítulo">
+              ⭐ 0 guardadas
             </button>
           </div>
         </div>
@@ -232,9 +234,12 @@
 
       <!-- Main Navigation Tabs (Portada) -->
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-        <div class="inline-flex p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800">
+        <div class="inline-flex flex-wrap p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800">
           <button onclick="app.switchMainTab('units')" id="tabBtnUnits" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">
-            📊 Progreso por Unidades y Sets de 20
+            📊 Unidades y Sets de 20
+          </button>
+          <button onclick="app.switchMainTab('saved')" id="tabBtnSaved" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+            ⭐ Guardadas por Capítulo <span id="tabSavedCountPill" class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-violet-500/20 text-violet-600 dark:text-violet-300">0</span>
           </button>
           <button onclick="app.switchMainTab('random')" id="tabBtnRandom" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
             🎲 Modo Random Inteligente
@@ -249,7 +254,7 @@
             <button onclick="app.setBankFilter('GUEVARA')" id="filterBankGUEVARA" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Guevara (19)</button>
           </div>
           <div class="relative flex-1 sm:w-56">
-            <input type="text" id="unitSearchInput" oninput="app.renderUnitsGrid()" placeholder="Buscar unidad o tema..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500" />
+            <input type="text" id="unitSearchInput" oninput="app.renderUnitsGrid(); app.renderSavedByChapterTab();" placeholder="Buscar unidad o tema..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500" />
             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -264,7 +269,30 @@
         </div>
       </div>
 
-      <!-- TAB 2 CONTENT: MODO RANDOM INTELIGENTE (SIN REPETIR) -->
+      <!-- TAB 2 CONTENT: PREGUNTAS GUARDADAS POR CAPÍTULO -->
+      <div id="tabContentSaved" class="hidden space-y-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>⭐ Tus Preguntas Guardadas por Capítulo</span>
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Todas las preguntas que marcaste con el botón <strong>⭐ Guardar</strong> durante tus ensayos, organizadas por especialidad (independiente de si estaban buenas o malas).
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="app.startGlobalBookmarkedQuiz()" class="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold shadow-sm transition">
+              ⭐ Ensayo Random con Guardadas (20)
+            </button>
+          </div>
+        </div>
+
+        <div id="savedChaptersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated saved chapter cards -->
+        </div>
+      </div>
+
+      <!-- TAB 3 CONTENT: MODO RANDOM INTELIGENTE (SIN REPETIR) -->
       <div id="tabContentRandom" class="hidden">
         <div class="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm space-y-5">
           <div class="flex items-start gap-3">
@@ -274,7 +302,7 @@
             <div>
               <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Generador de Ensayo Random Inteligente</h2>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Prioriza automáticamente las preguntas <strong>pendientes, incorrectas actuales o de tu historial de fallos</strong>.
+                Prioriza automáticamente las preguntas <strong>pendientes, incorrectas actuales, de tu historial de fallos o tus guardadas ⭐</strong>.
               </p>
             </div>
           </div>
@@ -312,6 +340,7 @@
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">4. Filtro Inteligente</label>
               <select id="randomFilterMode" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
                 <option value="SMART_NO_REPEAT">Sin repetir acertadas (Pendientes + Incorrectas)</option>
+                <option value="ONLY_BOOKMARKED">⭐ Solo preguntas guardadas (Favoritas)</option>
                 <option value="EVER_FAILED">📌 Historial de falladas (incluye las ya corregidas)</option>
                 <option value="ONLY_INCORRECT">❌ Solo incorrectas actuales (aún no corregidas)</option>
                 <option value="ONLY_UNANSWERED">⏳ Solo preguntas nunca respondidas</option>
@@ -350,6 +379,9 @@
         <div class="flex flex-wrap items-center gap-2">
           <button id="setsViewRandomBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition">
             🎲 20 Random (Sin repetir acertadas)
+          </button>
+          <button id="setsViewBookmarkedBtn" class="px-3.5 py-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 text-xs font-bold transition">
+            ⭐ Guardadas (0)
           </button>
           <button id="setsViewEverFailedBtn" class="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition">
             📌 Historial de falladas (0)
@@ -399,7 +431,7 @@
         <div id="questionTouchArea" class="lg:col-span-8 space-y-4">
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-5">
 
-            <!-- Question Meta Badges -->
+            <!-- Question Meta Badges & Action Buttons -->
             <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
               <div class="flex flex-wrap items-center gap-1.5">
                 <span id="qCounterBadge" class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-emerald-600 text-white">
@@ -416,13 +448,22 @@
                 </span>
               </div>
 
-              <button onclick="app.openPdfPageModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 transition" title="Atajo: tecla V">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-                <span id="qPageBtnText">Ver lámina PDF (Pág. 1)</span>
-              </button>
+              <div class="flex items-center gap-1.5">
+                <!-- Bookmark / Save Question Button -->
+                <button onclick="app.toggleBookmarkCurrentQuestion()" id="qBookmarkBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition" title="Guardar/Desmarcar pregunta para revisitar por capítulo (Atajo: tecla G)">
+                  <span id="qBookmarkIcon">☆</span>
+                  <span id="qBookmarkText">Guardar</span>
+                </button>
+
+                <!-- PDF Sheet Viewer Button -->
+                <button onclick="app.openPdfPageModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-500/20 transition" title="Atajo: tecla V">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  <span id="qPageBtnText">Ver lámina PDF (Pág. 1)</span>
+                </button>
+              </div>
             </div>
 
             <!-- Yellow Proposed Answer Banner (if question is proposed/unverified in original) -->
@@ -489,7 +530,7 @@
               <button onclick="app.prevQuestion()" id="btnPrevDesktop" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
                 ← Anterior
               </button>
-              <span class="text-[11px] text-slate-400">Atajos: Teclas <strong>A-E</strong> o <strong>1-5</strong> · Flechas ←/→ · <strong>V</strong> Lámina</span>
+              <span class="text-[11px] text-slate-400">Atajos: <strong>A-E</strong> o <strong>1-5</strong> · Flechas ←/→ · <strong>G</strong> Guardar ⭐ · <strong>V</strong> Lámina</span>
               <button onclick="app.nextQuestion()" id="btnNextDesktop" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm transition">
                 Siguiente →
               </button>
@@ -508,6 +549,10 @@
             <div id="questionGridDesktop" class="grid grid-cols-5 gap-2">
               <!-- 1..20 buttons -->
             </div>
+            <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
+              <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Historial fallo</span>
+              <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-violet-400"></span> Guardada ⭐</span>
+            </div>
           </div>
         </div>
 
@@ -515,18 +560,21 @@
 
       <!-- MOBILE FIXED BOTTOM ACTION BAR (Thumb Ergonomics) -->
       <div class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 pt-2.5 safe-bottom">
-        <div class="max-w-lg mx-auto grid grid-cols-4 gap-2">
-          <button onclick="app.prevQuestion()" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1">
+        <div class="max-w-lg mx-auto grid grid-cols-5 gap-1.5">
+          <button onclick="app.prevQuestion()" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center">
             <span>← Ant.</span>
           </button>
           <button onclick="app.toggleMobileNavSheet(true)" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex flex-col items-center justify-center">
             <span>Grilla</span>
             <span id="mobileGridBtnCount" class="text-[10px] text-emerald-500 font-extrabold">1/20</span>
           </button>
-          <button onclick="app.openPdfPageModal()" class="min-h-[46px] rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 active:scale-95 font-bold text-xs flex items-center justify-center gap-1">
-            <span>🖼️ Lámina</span>
+          <button onclick="app.toggleBookmarkCurrentQuestion()" id="mobileBookmarkBtn" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1">
+            <span id="mobileBookmarkIcon">☆</span>
           </button>
-          <button onclick="app.nextQuestion()" class="min-h-[46px] rounded-xl bg-emerald-600 text-white active:scale-95 font-bold text-xs flex items-center justify-center gap-1 shadow-sm">
+          <button onclick="app.openPdfPageModal()" class="min-h-[46px] rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 active:scale-95 font-bold text-xs flex items-center justify-center gap-1">
+            <span>🖼️ PDF</span>
+          </button>
+          <button onclick="app.nextQuestion()" class="min-h-[46px] rounded-xl bg-emerald-600 text-white active:scale-95 font-bold text-xs flex items-center justify-center shadow-sm">
             <span>Sig. →</span>
           </button>
         </div>
@@ -581,12 +629,16 @@
             <span>📌 Repasar historial de falladas de este bloque</span>
           </button>
 
+          <button id="btnRetryBookmarked" onclick="app.retryCurrentSetSubset('bookmarked')" class="w-full py-3 px-4 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-700 dark:text-violet-300 border border-violet-500/30 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2">
+            <span>⭐ Repasar preguntas guardadas de este bloque</span>
+          </button>
+
           <button id="btnRetryCorrect" onclick="app.retryCurrentSetSubset('correct')" class="w-full py-3 px-4 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2">
             <span>✅ Reintentar solo las correctas</span>
           </button>
 
           <button onclick="app.retryCurrentSetSubset('all')" class="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">
-            🔁 Reiniciar este set completo (conservando historial de fallos)
+            🔁 Reiniciar este set completo (conservando historial y guardadas)
           </button>
 
           <button onclick="app.returnFromSummary()" class="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition">
@@ -769,7 +821,7 @@
       unitsMap: new Map(), // unitId -> { id, bank, name, questions: [] }
       pdfDocs: { PEDIATRIA: null, GUEVARA: null },
       progress: {
-        answers: {},  // qId -> { selected: 'a'|null, correct: true|false, everFailed: true|false, failCount: number, timestamp: 123456 }
+        answers: {},  // qId -> { selected: 'a'|null, correct: true|false, everFailed: bool, failCount: num, bookmarked: bool, bookmarkUpdatedAt: num, timestamp: num }
         deleted: {},  // qId -> timestamp (tombstones so intentional retries sync cleanly across devices)
         updatedAt: 0
       },
@@ -800,7 +852,7 @@
       modalPdfPage: 1,
       modalScale: 1.5,
 
-      /* ==================== HELPERS PARA ESTADO ACTUAL VS HISTORIAL DE FALLOS ==================== */
+      /* ==================== HELPERS PARA ESTADO ACTUAL, HISTORIAL DE FALLOS Y GUARDADAS (⭐) ==================== */
       isAnswered(qId) {
         const r = this.progress.answers[qId];
         return Boolean(r && r.selected);
@@ -818,14 +870,58 @@
 
       isEverFailed(qId) {
         const r = this.progress.answers[qId];
-        return Boolean(r && (r.everFailed === true || r.correct === false));
+        return Boolean(r && (r.everFailed === true || (r.selected && r.correct === false)));
       },
 
       getFailCount(qId) {
         const r = this.progress.answers[qId];
         if (!r) return 0;
         if (typeof r.failCount === 'number' && r.failCount > 0) return r.failCount;
-        return (r.everFailed || r.correct === false) ? 1 : 0;
+        return (r.everFailed || (r.selected && r.correct === false)) ? 1 : 0;
+      },
+
+      isBookmarked(qId) {
+        const r = this.progress.answers[qId];
+        return Boolean(r && r.bookmarked === true);
+      },
+
+      toggleBookmarkQuestion(qId) {
+        if (!qId) return;
+        const now = Date.now();
+        const prev = this.progress.answers[qId];
+        const nextBookmarked = !(prev && prev.bookmarked === true);
+
+        if (prev) {
+          this.progress.answers[qId] = {
+            ...prev,
+            bookmarked: nextBookmarked,
+            bookmarkUpdatedAt: now,
+            timestamp: Math.max(now, prev.timestamp || 0)
+          };
+        } else {
+          this.progress.answers[qId] = {
+            selected: null,
+            correct: false,
+            everFailed: false,
+            failCount: 0,
+            bookmarked: nextBookmarked,
+            bookmarkUpdatedAt: now,
+            timestamp: now
+          };
+        }
+
+        if (this.progress.deleted && this.progress.deleted[qId]) {
+          delete this.progress.deleted[qId];
+        }
+
+        this.saveProgressToStorage(true);
+      },
+
+      toggleBookmarkCurrentQuestion() {
+        const q = this.activeQuestions[this.currentIndex];
+        if (!q) return;
+        this.toggleBookmarkQuestion(q.id);
+        this.renderCurrentQuestion();
       },
 
       async init() {
@@ -997,7 +1093,8 @@
           if (info) {
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const answeredCount = Object.keys(this.progress.answers).filter(k => this.isAnswered(k)).length;
-            info.textContent = `✓ Última sincronización: hoy a las ${timeStr} (${answeredCount} respuestas guardadas)`;
+            const savedCount = Object.keys(this.progress.answers).filter(k => this.isBookmarked(k)).length;
+            info.textContent = `✓ Última sincronización: hoy a las ${timeStr} (${answeredCount} respondidas · ${savedCount} ⭐ guardadas)`;
           }
         } else if (state === 'syncing') {
           dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
@@ -1022,7 +1119,7 @@
       /**
        * Smart Question-Level Timestamp Merge:
        * Combines answers from Mobile and Tablet so neither device overwrites newer answers from the other,
-       * while ALWAYS preserving `everFailed: true` and maximum `failCount` across devices.
+       * while preserving `everFailed`, `failCount`, and `bookmarked` status across devices.
        */
       mergeProgressObjects(progA, progB) {
         const ansA = (progA && progA.answers) ? progA.answers : {};
@@ -1051,22 +1148,34 @@
 
           // Preserve historical failure status across both records
           const wasEverFailed = Boolean(
-            (a && (a.everFailed || a.correct === false)) ||
-            (b && (b.everFailed || b.correct === false))
+            (a && (a.everFailed || (a.selected && a.correct === false))) ||
+            (b && (b.everFailed || (b.selected && b.correct === false)))
           );
           const maxFailCount = Math.max(
-            a ? (a.failCount || (a.correct === false ? 1 : 0)) : 0,
-            b ? (b.failCount || (b.correct === false ? 1 : 0)) : 0
+            a ? (a.failCount || ((a.selected && a.correct === false) ? 1 : 0)) : 0,
+            b ? (b.failCount || ((b.selected && b.correct === false) ? 1 : 0)) : 0
           );
 
+          // Resolve bookmark status using most recent bookmark action or latest record
+          const bmTsA = a ? (a.bookmarkUpdatedAt || (a.bookmarked ? tsA : 0)) : 0;
+          const bmTsB = b ? (b.bookmarkUpdatedAt || (b.bookmarked ? tsB : 0)) : 0;
+          let isBookmarked = false;
+          let latestBmTs = Math.max(bmTsA, bmTsB);
+          if (bmTsA > 0 || bmTsB > 0) {
+            isBookmarked = bmTsA >= bmTsB ? Boolean(a && a.bookmarked) : Boolean(b && b.bookmarked);
+          } else {
+            isBookmarked = Boolean((a && a.bookmarked) || (b && b.bookmarked));
+          }
+
           if (delTs > latestAnsTs) {
-            // Question was reset on a device with an older format; if it had failure history, keep it as pending with everFailed
-            if (wasEverFailed) {
+            if (wasEverFailed || isBookmarked) {
               mergedAnswers[qId] = {
                 selected: null,
                 correct: false,
-                everFailed: true,
-                failCount: Math.max(1, maxFailCount),
+                everFailed: wasEverFailed,
+                failCount: wasEverFailed ? Math.max(1, maxFailCount) : 0,
+                bookmarked: isBookmarked,
+                bookmarkUpdatedAt: latestBmTs,
                 timestamp: delTs
               };
             }
@@ -1077,7 +1186,9 @@
             mergedAnswers[qId] = {
               ...latestAns,
               everFailed: wasEverFailed,
-              failCount: wasEverFailed ? Math.max(1, maxFailCount) : 0
+              failCount: wasEverFailed ? Math.max(1, maxFailCount) : 0,
+              bookmarked: isBookmarked,
+              bookmarkUpdatedAt: latestBmTs
             };
           }
         }
@@ -1140,7 +1251,8 @@
 
           if (showNotification) {
             const answeredCount = Object.keys(this.progress.answers).filter(k => this.isAnswered(k)).length;
-            alert(`¡Sincronización exitosa! Total sincronizado: ${answeredCount} preguntas respondidas.`);
+            const savedCount = Object.keys(this.progress.answers).filter(k => this.isBookmarked(k)).length;
+            alert(`¡Sincronización exitosa! Total sincronizado: ${answeredCount} respondidas y ${savedCount} guardadas ⭐.`);
           }
         } catch (err) {
           console.warn('Error sincronizando con Firebase:', err);
@@ -1219,21 +1331,25 @@
 
       /**
        * Reinicia la respuesta actual de la pregunta para poder volver a contestarla en un ensayo,
-       * pero CONSERVA `everFailed: true` y `failCount` dentro de `this.progress.answers[qId]`
-       * para que nunca se pierda del historial de falladas ni en local ni en Firebase.
+       * pero CONSERVA `everFailed`, `failCount` y `bookmarked` dentro de `this.progress.answers[qId]`
+       * para que nunca se pierdan del historial ni de las preguntas guardadas ⭐.
        */
       markQuestionResetForRetry(qId) {
         const prev = this.progress.answers[qId];
-        const hadFailed = Boolean(prev && (prev.everFailed === true || prev.correct === false));
-        const prevFailCount = prev ? (prev.failCount || (prev.correct === false ? 1 : 0)) : 0;
+        const hadFailed = Boolean(prev && (prev.everFailed === true || (prev.selected && prev.correct === false)));
+        const prevFailCount = prev ? (prev.failCount || ((prev.selected && prev.correct === false) ? 1 : 0)) : 0;
+        const wasBookmarked = Boolean(prev && prev.bookmarked === true);
+        const prevBmTs = prev ? (prev.bookmarkUpdatedAt || 0) : 0;
         const now = Date.now();
 
-        if (hadFailed) {
+        if (hadFailed || wasBookmarked) {
           this.progress.answers[qId] = {
             selected: null,
             correct: false,
-            everFailed: true,
-            failCount: Math.max(1, prevFailCount),
+            everFailed: hadFailed,
+            failCount: hadFailed ? Math.max(1, prevFailCount) : 0,
+            bookmarked: wasBookmarked,
+            bookmarkUpdatedAt: prevBmTs,
             timestamp: now
           };
           if (this.progress.deleted && this.progress.deleted[qId]) {
@@ -1661,7 +1777,7 @@
       /* ==================== DASHBOARD & PROGRESO POR UNIDADES ==================== */
       renderDashboard() {
         let totalQ = this.questions.length;
-        let answeredQ = 0, correctQ = 0, incorrectQ = 0, everFailedQ = 0;
+        let answeredQ = 0, correctQ = 0, incorrectQ = 0, everFailedQ = 0, bookmarkedQ = 0;
         let pedTotal = 0, pedAns = 0, pedCor = 0;
         let guevTotal = 0, guevAns = 0, guevCor = 0;
 
@@ -1671,6 +1787,9 @@
 
           if (this.isEverFailed(q.id)) {
             everFailedQ++;
+          }
+          if (this.isBookmarked(q.id)) {
+            bookmarkedQ++;
           }
 
           if (this.isAnswered(q.id)) {
@@ -1705,7 +1824,17 @@
 
         const everFailedBadge = document.getElementById('kpiEverFailedBadge');
         if (everFailedBadge) {
-          everFailedBadge.textContent = `📌 ${everFailedQ} en historial de falladas`;
+          everFailedBadge.textContent = `📌 ${everFailedQ} hist. fallos`;
+        }
+
+        const bookmarkedBadge = document.getElementById('kpiBookmarkedBadge');
+        if (bookmarkedBadge) {
+          bookmarkedBadge.textContent = `⭐ ${bookmarkedQ} guardadas`;
+        }
+
+        const tabSavedPill = document.getElementById('tabSavedCountPill');
+        if (tabSavedPill) {
+          tabSavedPill.textContent = bookmarkedQ;
         }
 
         document.getElementById('kpiPedPct').textContent = `${pedAns} / ${pedTotal}`;
@@ -1717,6 +1846,7 @@
         document.getElementById('kpiGuevBar').style.width = `${guevPct}%`;
 
         this.renderUnitsGrid();
+        this.renderSavedByChapterTab();
       },
 
       startGlobalEverFailedQuiz() {
@@ -1744,6 +1874,31 @@
         );
       },
 
+      startGlobalBookmarkedQuiz() {
+        const pool = this.questions.filter(q => {
+          if (this.bankFilter !== 'ALL' && q.bank !== this.bankFilter) return false;
+          return this.isBookmarked(q.id);
+        });
+
+        if (pool.length === 0) {
+          alert('Aún no tienes preguntas guardadas con ⭐. Puedes guardar cualquier pregunta durante un ensayo usando el botón "☆ Guardar" (o la tecla G).');
+          return;
+        }
+
+        const chosen = this.shuffleArray(pool).slice(0, 20);
+        for (const q of chosen) {
+          this.markQuestionResetForRetry(q.id);
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          chosen,
+          `Preguntas Guardadas ⭐ (${chosen.length} de ${pool.length})`,
+          'Repaso de tus preguntas favoritas seleccionadas',
+          0
+        );
+      },
+
       setBankFilter(filter) {
         this.bankFilter = filter;
         ['ALL', 'PEDIATRIA', 'GUEVARA'].forEach(k => {
@@ -1755,6 +1910,7 @@
           }
         });
         this.renderUnitsGrid();
+        this.renderSavedByChapterTab();
       },
 
       renderUnitsGrid() {
@@ -1768,9 +1924,10 @@
           if (query && !unit.name.toLowerCase().includes(query)) continue;
 
           const total = unit.questions.length;
-          let answered = 0, correct = 0, everFailed = 0;
+          let answered = 0, correct = 0, everFailed = 0, bookmarked = 0;
           for (const q of unit.questions) {
             if (this.isEverFailed(q.id)) everFailed++;
+            if (this.isBookmarked(q.id)) bookmarked++;
             if (this.isAnswered(q.id)) {
               answered++;
               if (this.isCurrentlyCorrect(q.id)) correct++;
@@ -1792,8 +1949,12 @@
             ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`
             : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
 
+          const bookmarkedPill = bookmarked > 0
+            ? `<button onclick="app.startUnitBookmarkedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 transition" title="Practicar las ${bookmarked} preguntas guardadas ⭐ en este capítulo">⭐ ${bookmarked}</button>`
+            : '';
+
           const everFailedPill = everFailed > 0
-            ? `<button onclick="app.startUnitEverFailedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition" title="Practicar las ${everFailed} preguntas que alguna vez fallaste en esta unidad">📌 Historial fallos: ${everFailed}</button>`
+            ? `<button onclick="app.startUnitEverFailedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition" title="Practicar las ${everFailed} preguntas que alguna vez fallaste en esta unidad">📌 ${everFailed}</button>`
             : '';
 
           const card = document.createElement('div');
@@ -1802,7 +1963,8 @@
             <div class="space-y-2.5">
               <div class="flex flex-wrap items-center justify-between gap-1.5">
                 ${bankBadge}
-                <div class="flex items-center gap-1.5">
+                <div class="flex flex-wrap items-center gap-1">
+                  ${bookmarkedPill}
                   ${everFailedPill}
                   <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${accBadgeColor}">
                     ${answered > 0 ? `Acierto: ${accPct}% (${correct}/${answered})` : 'Sin intentos'}
@@ -1834,19 +1996,98 @@
         }
       },
 
+      renderSavedByChapterTab() {
+        const container = document.getElementById('savedChaptersGrid');
+        if (!container) return;
+        const query = (document.getElementById('unitSearchInput')?.value || '').toLowerCase().trim();
+        container.innerHTML = '';
+
+        let chaptersWithSaved = 0;
+
+        for (const unit of this.unitsMap.values()) {
+          if (unit.questions.length === 0) continue;
+          if (this.bankFilter !== 'ALL' && unit.bank !== this.bankFilter) continue;
+          if (query && !unit.name.toLowerCase().includes(query)) continue;
+
+          const savedQs = unit.questions.filter(q => this.isBookmarked(q.id));
+          if (savedQs.length === 0) continue;
+          chaptersWithSaved++;
+
+          let cor = 0, inc = 0;
+          for (const q of savedQs) {
+            if (this.isCurrentlyCorrect(q.id)) cor++;
+            else if (this.isCurrentlyIncorrect(q.id)) inc++;
+          }
+
+          const bankBadge = unit.bank === 'PEDIATRIA'
+            ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`
+            : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
+
+          const qNumsPreview = savedQs.slice(0, 8).map(q => `#${q.num}`).join(', ') + (savedQs.length > 8 ? '...' : '');
+
+          const card = document.createElement('div');
+          card.className = 'bg-white dark:bg-slate-900 rounded-2xl border border-violet-500/30 p-4 sm:p-5 shadow-sm flex flex-col justify-between gap-4';
+          card.innerHTML = `
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                ${bankBadge}
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-violet-500/15 text-violet-600 dark:text-violet-300 border border-violet-500/30">
+                  ⭐ ${savedQs.length} guardada${savedQs.length === 1 ? '' : 's'}
+                </span>
+              </div>
+              <h3 class="text-base font-extrabold text-slate-900 dark:text-white">${unit.name}</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Preguntas: <span class="font-mono text-slate-700 dark:text-slate-300">${qNumsPreview}</span>
+              </p>
+              <div class="text-[11px] text-slate-400">
+                Estado actual: ${cor} ✅ · ${inc} ❌ · ${savedQs.length - cor - inc} ⏳
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button onclick="app.startUnitBookmarkedOnly('${unit.id}')" class="py-2 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs transition flex items-center justify-center gap-1">
+                <span>⭐ Practicar (${savedQs.length})</span>
+              </button>
+              <button onclick="app.openUnitSets('${unit.id}')" class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center gap-1">
+                <span>📋 Ver Unidad</span>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        }
+
+        if (chaptersWithSaved === 0) {
+          container.innerHTML = `
+            <div class="col-span-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center space-y-2">
+              <div class="text-3xl">☆</div>
+              <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Aún no tienes preguntas guardadas en esta vista</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                Cuando estés haciendo cualquier ensayo o revisando una pregunta, presiona el botón <strong>"☆ Guardar"</strong> (arriba a la derecha de la pregunta o con la tecla <strong>G</strong>) y aparecerán clasificadas por capítulo aquí.
+              </p>
+            </div>
+          `;
+        }
+      },
+
       switchMainTab(tab) {
         const isUnits = tab === 'units';
+        const isSaved = tab === 'saved';
+        const isRandom = tab === 'random';
+
         document.getElementById('tabContentUnits').classList.toggle('hidden', !isUnits);
-        document.getElementById('unitFilterControls').classList.toggle('hidden', !isUnits);
-        document.getElementById('tabContentRandom').classList.toggle('hidden', isUnits);
+        document.getElementById('tabContentSaved').classList.toggle('hidden', !isSaved);
+        document.getElementById('tabContentRandom').classList.toggle('hidden', !isRandom);
+        document.getElementById('unitFilterControls').classList.toggle('hidden', isRandom);
 
-        document.getElementById('tabBtnUnits').className = isUnits
-          ? 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-          : 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+        const activeCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm';
+        const inactiveCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
 
-        document.getElementById('tabBtnRandom').className = !isUnits
-          ? 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-          : 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+        document.getElementById('tabBtnUnits').className = isUnits ? activeCls : inactiveCls;
+        document.getElementById('tabBtnSaved').className = isSaved ? activeCls : inactiveCls;
+        document.getElementById('tabBtnRandom').className = isRandom ? activeCls : inactiveCls;
+
+        if (isSaved) {
+          this.renderSavedByChapterTab();
+        }
       },
 
       /* ==================== UNIT SETS OF 20 VIEW ==================== */
@@ -1868,15 +2109,21 @@
 
         let unitCurrentWrong = 0;
         let unitEverFailed = 0;
+        let unitBookmarked = 0;
         for (const q of unit.questions) {
           if (this.isCurrentlyIncorrect(q.id)) unitCurrentWrong++;
           if (this.isEverFailed(q.id)) unitEverFailed++;
+          if (this.isBookmarked(q.id)) unitBookmarked++;
         }
 
         document.getElementById('setsViewTitle').textContent = unit.name;
         document.getElementById('setsViewSubtitle').textContent = `${unit.questions.length} preguntas totales divididas en bloques secuenciales de 20`;
 
         document.getElementById('setsViewRandomBtn').onclick = () => this.startUnitSmartRandom(unitId);
+
+        const bmBtn = document.getElementById('setsViewBookmarkedBtn');
+        bmBtn.textContent = `⭐ Guardadas (${unitBookmarked})`;
+        bmBtn.onclick = () => this.startUnitBookmarkedOnly(unitId);
 
         const everFailedBtn = document.getElementById('setsViewEverFailedBtn');
         everFailedBtn.textContent = `📌 Historial de falladas (${unitEverFailed})`;
@@ -1898,9 +2145,10 @@
           const firstNum = slice[0].num;
           const lastNum = slice[slice.length - 1].num;
 
-          let ans = 0, cor = 0, inc = 0, everF = 0;
+          let ans = 0, cor = 0, inc = 0, everF = 0, bm = 0;
           for (const q of slice) {
             if (this.isEverFailed(q.id)) everF++;
+            if (this.isBookmarked(q.id)) bm++;
             if (this.isAnswered(q.id)) {
               ans++;
               if (this.isCurrentlyCorrect(q.id)) cor++;
@@ -1932,7 +2180,7 @@
                 <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${statusClass}">${statusLabel}</span>
               </div>
               <div class="flex items-center justify-between text-xs text-slate-500">
-                <span>${cor} ✅ · ${inc} ❌ · ${slice.length - ans} ⏳ ${everF > 0 ? `· <strong class="text-amber-500">📌 ${everF} hist.</strong>` : ''}</span>
+                <span>${cor} ✅ · ${inc} ❌ · ${slice.length - ans} ⏳ ${everF > 0 ? `· <strong class="text-amber-500">📌 ${everF}</strong>` : ''} ${bm > 0 ? `· <strong class="text-violet-500">⭐ ${bm}</strong>` : ''}</span>
                 <span>${pct}%</span>
               </div>
               <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -1943,8 +2191,9 @@
               <button onclick="app.startFixedSet('${unitId}', ${s})" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
                 ${ans > 0 && ans < slice.length ? 'Continuar Prueba' : 'Rendir Prueba'}
               </button>
-              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas actuales de esta prueba" class="py-2 px-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌ (${inc})</button>` : ''}
-              ${everF > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'everFailed')" title="Repasar historial de falladas de esta prueba (incluye las que ya corregiste)" class="py-2 px-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs transition">📌 (${everF})</button>` : ''}
+              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas actuales de esta prueba" class="py-2 px-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌(${inc})</button>` : ''}
+              ${everF > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'everFailed')" title="Repasar historial de falladas de esta prueba" class="py-2 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs transition">📌(${everF})</button>` : ''}
+              ${bm > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'bookmarked')" title="Repasar las preguntas guardadas ⭐ de esta prueba" class="py-2 px-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 font-bold text-xs transition">⭐(${bm})</button>` : ''}
             </div>
           `;
           grid.appendChild(blockCard);
@@ -1974,6 +2223,7 @@
         const startIdx = setIndex * 20;
         const slice = unit.questions.slice(startIdx, startIdx + 20);
         const filtered = slice.filter(q => {
+          if (mode === 'bookmarked') return this.isBookmarked(q.id);
           if (mode === 'everFailed') return this.isEverFailed(q.id);
           if (mode === 'incorrect') return this.isCurrentlyIncorrect(q.id);
           if (mode === 'correct') return this.isCurrentlyCorrect(q.id);
@@ -1986,7 +2236,9 @@
         }
         this.saveProgressToStorage();
 
-        const modeLabel = mode === 'everFailed'
+        const modeLabel = mode === 'bookmarked'
+          ? 'Guardadas ⭐'
+          : mode === 'everFailed'
           ? 'Historial de Falladas'
           : (mode === 'incorrect' ? 'Solo Incorrectas Actuales' : 'Solo Correctas');
 
@@ -2053,6 +2305,8 @@
             alert('¡Felicitaciones! Ya has respondido correctamente todas las preguntas de esta selección. Se incluirán todas para repaso.');
             selectedPool = pool;
           }
+        } else if (filterMode === 'ONLY_BOOKMARKED') {
+          selectedPool = pool.filter(q => this.isBookmarked(q.id));
         } else if (filterMode === 'EVER_FAILED') {
           selectedPool = pool.filter(q => this.isEverFailed(q.id));
         } else if (filterMode === 'ONLY_UNANSWERED') {
@@ -2076,7 +2330,9 @@
         }
         this.saveProgressToStorage();
 
-        const subLabel = filterMode === 'EVER_FAILED'
+        const subLabel = filterMode === 'ONLY_BOOKMARKED'
+          ? 'Preguntas Guardadas ⭐'
+          : filterMode === 'EVER_FAILED'
           ? 'Historial de falladas (incluye preguntas que luego corregiste)'
           : (filterMode === 'SMART_NO_REPEAT' ? 'Excluyendo preguntas ya acertadas' : 'Práctica personalizada');
 
@@ -2162,6 +2418,30 @@
         );
       },
 
+      startUnitBookmarkedOnly(unitId) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit) return;
+        this.activeUnitId = unitId;
+
+        const savedList = unit.questions.filter(q => this.isBookmarked(q.id));
+        if (savedList.length === 0) {
+          alert('No tienes preguntas guardadas con ⭐ en este capítulo. Puedes guardar cualquier pregunta mientras practicas presionando el botón "☆ Guardar".');
+          return;
+        }
+
+        for (const q of savedList) {
+          this.markQuestionResetForRetry(q.id);
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          savedList,
+          `${unit.name} — Preguntas Guardadas ⭐`,
+          `${savedList.length} preguntas guardadas en este capítulo`,
+          0
+        );
+      },
+
       /* ==================== ACTIVE QUIZ SESSION & IMMEDIATE FEEDBACK ==================== */
       launchQuizSession(questionsList, title, subtitle, startIndex = 0) {
         this.activeQuestions = questionsList;
@@ -2191,12 +2471,41 @@
         const total = this.activeQuestions.length;
         const ansRecord = this.progress.answers[q.id];
         const hasSelection = Boolean(ansRecord && ansRecord.selected);
+        const bookmarked = this.isBookmarked(q.id);
 
         document.getElementById('qCounterBadge').textContent = `Pregunta ${this.currentIndex + 1} / ${total} (#${q.num})`;
         document.getElementById('qBankBadge').textContent = q.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara';
         document.getElementById('qSubtopicBadge').textContent = q.subtopic || q.unit;
         document.getElementById('qPageBtnText').textContent = `Ver lámina (Pág. ${q.page})`;
         document.getElementById('mobileGridBtnCount').textContent = `${this.currentIndex + 1}/${total}`;
+
+        // Update Bookmark / Save button state (Desktop & Mobile)
+        const bmBtn = document.getElementById('qBookmarkBtn');
+        const bmIcon = document.getElementById('qBookmarkIcon');
+        const bmText = document.getElementById('qBookmarkText');
+        const mobBmBtn = document.getElementById('mobileBookmarkBtn');
+        const mobBmIcon = document.getElementById('mobileBookmarkIcon');
+
+        if (bmBtn && bmIcon && bmText) {
+          if (bookmarked) {
+            bmBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-violet-600 text-white border border-violet-500 shadow-xs transition';
+            bmIcon.textContent = '⭐';
+            bmText.textContent = 'Guardada';
+          } else {
+            bmBtn.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-violet-500/15 dark:bg-slate-800 dark:hover:bg-violet-500/20 text-slate-600 dark:text-slate-300 hover:text-violet-600 dark:hover:text-violet-300 border border-slate-200 dark:border-slate-700 transition';
+            bmIcon.textContent = '☆';
+            bmText.textContent = 'Guardar';
+          }
+        }
+        if (mobBmBtn && mobBmIcon) {
+          if (bookmarked) {
+            mobBmBtn.className = 'min-h-[46px] rounded-xl bg-violet-600 text-white active:scale-95 font-bold text-xs flex items-center justify-center gap-1';
+            mobBmIcon.textContent = '⭐';
+          } else {
+            mobBmBtn.className = 'min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1';
+            mobBmIcon.textContent = '☆';
+          }
+        }
 
         // Show badge if this question was ever failed in the past
         const everFailedBadge = document.getElementById('qEverFailedBadge');
@@ -2311,8 +2620,10 @@
         const isCorrect = letter.toLowerCase() === q.answer.toLowerCase();
         const now = Date.now();
         const prev = this.progress.answers[q.id];
-        const prevEverFailed = Boolean(prev && (prev.everFailed === true || prev.correct === false));
-        const prevFailCount = prev ? (prev.failCount || (prev.correct === false ? 1 : 0)) : 0;
+        const prevEverFailed = Boolean(prev && (prev.everFailed === true || (prev.selected && prev.correct === false)));
+        const prevFailCount = prev ? (prev.failCount || ((prev.selected && prev.correct === false) ? 1 : 0)) : 0;
+        const prevBookmarked = Boolean(prev && prev.bookmarked === true);
+        const prevBmTs = prev ? (prev.bookmarkUpdatedAt || 0) : 0;
 
         const newEverFailed = prevEverFailed || !isCorrect;
         const newFailCount = !isCorrect ? (prevFailCount + 1) : prevFailCount;
@@ -2322,6 +2633,8 @@
           correct: isCorrect,
           everFailed: newEverFailed,
           failCount: newFailCount,
+          bookmarked: prevBookmarked,
+          bookmarkUpdatedAt: prevBmTs,
           timestamp: now
         };
         if (this.progress.deleted && this.progress.deleted[q.id]) {
@@ -2343,6 +2656,7 @@
             const answered = this.isAnswered(q.id);
             const isCor = this.isCurrentlyCorrect(q.id);
             const everF = this.isEverFailed(q.id);
+            const bm = this.isBookmarked(q.id);
             const btn = document.createElement('button');
             let cls = 'h-10 rounded-xl font-bold text-xs transition flex items-center justify-center border relative ';
 
@@ -2359,7 +2673,9 @@
             }
 
             btn.className = cls;
-            btn.innerHTML = `${idx + 1}${everF ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1 right-1" title="En historial de falladas"></span>' : ''}`;
+            const dotEverF = everF ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1 right-1" title="En historial de falladas"></span>' : '';
+            const dotBm = bm ? '<span class="w-1.5 h-1.5 rounded-full bg-violet-400 absolute bottom-1 right-1" title="Pregunta guardada ⭐"></span>' : '';
+            btn.innerHTML = `${idx + 1}${dotEverF}${dotBm}`;
             btn.onclick = () => {
               this.currentIndex = idx;
               if (isMobile) this.toggleMobileNavSheet(false);
@@ -2413,9 +2729,10 @@
         document.getElementById('quizView').classList.add('hidden');
         document.getElementById('summaryView').classList.remove('hidden');
 
-        let cor = 0, inc = 0, everF = 0;
+        let cor = 0, inc = 0, everF = 0, bm = 0;
         for (const q of this.activeQuestions) {
           if (this.isEverFailed(q.id)) everF++;
+          if (this.isBookmarked(q.id)) bm++;
           if (this.isAnswered(q.id)) {
             if (this.isCurrentlyCorrect(q.id)) cor++;
             else inc++;
@@ -2433,6 +2750,7 @@
 
         const btnInc = document.getElementById('btnRetryIncorrect');
         const btnEver = document.getElementById('btnRetryEverFailed');
+        const btnBm = document.getElementById('btnRetryBookmarked');
         const btnCor = document.getElementById('btnRetryCorrect');
 
         btnInc.classList.toggle('hidden', inc === 0);
@@ -2440,6 +2758,9 @@
 
         btnEver.classList.toggle('hidden', everF === 0);
         btnEver.textContent = `📌 Repasar historial de falladas de este bloque (${everF})`;
+
+        btnBm.classList.toggle('hidden', bm === 0);
+        btnBm.textContent = `⭐ Repasar preguntas guardadas de este bloque (${bm})`;
 
         btnCor.classList.toggle('hidden', cor === 0);
         btnCor.textContent = `✅ Reintentar solo las correctas (${cor})`;
@@ -2453,6 +2774,8 @@
           subset = this.activeQuestions.filter(q => this.isCurrentlyIncorrect(q.id));
         } else if (mode === 'everFailed') {
           subset = this.activeQuestions.filter(q => this.isEverFailed(q.id));
+        } else if (mode === 'bookmarked') {
+          subset = this.activeQuestions.filter(q => this.isBookmarked(q.id));
         } else if (mode === 'correct') {
           subset = this.activeQuestions.filter(q => this.isCurrentlyCorrect(q.id));
         } else {
@@ -2470,6 +2793,8 @@
           ? 'Reintento Incorrectas'
           : mode === 'everFailed'
           ? 'Historial de Falladas'
+          : mode === 'bookmarked'
+          ? 'Guardadas ⭐'
           : mode === 'correct'
           ? 'Reintento Correctas'
           : 'Reinicio Completo';
@@ -2611,6 +2936,9 @@
           } else if (mapNum[key]) {
             e.preventDefault();
             this.selectOption(mapNum[key]);
+          } else if (key === 'g' || key === 's') {
+            e.preventDefault();
+            this.toggleBookmarkCurrentQuestion();
           } else if (e.key === 'ArrowRight' || e.key === ' ') {
             e.preventDefault();
             this.nextQuestion();
