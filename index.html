@@ -199,7 +199,12 @@
             <h3 id="kpiAccuracyPct" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">0%</h3>
             <span id="kpiAccuracyCounts" class="text-xs font-semibold text-slate-500 dark:text-slate-400">0 ✅ · 0 ❌</span>
           </div>
-          <p class="mt-2 text-[11px] text-slate-400 dark:text-slate-500">Sobre preguntas respondidas</p>
+          <div class="mt-2 flex items-center justify-between gap-1">
+            <span class="text-[11px] text-slate-400 dark:text-slate-500">Estado actual</span>
+            <button onclick="app.startGlobalEverFailedQuiz()" id="kpiEverFailedBadge" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline" title="Hacer ensayo con preguntas del historial de fallos">
+              📌 0 en historial de falladas
+            </button>
+          </div>
         </div>
 
         <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -269,7 +274,7 @@
             <div>
               <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Generador de Ensayo Random Inteligente</h2>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Prioriza automáticamente las preguntas <strong>pendientes o fallidas</strong> y excluye las que ya acertaste anteriormente.
+                Prioriza automáticamente las preguntas <strong>pendientes, incorrectas actuales o de tu historial de fallos</strong>.
               </p>
             </div>
           </div>
@@ -307,8 +312,9 @@
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">4. Filtro Inteligente</label>
               <select id="randomFilterMode" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
                 <option value="SMART_NO_REPEAT">Sin repetir acertadas (Pendientes + Incorrectas)</option>
-                <option value="ONLY_UNANSWERED">Solo preguntas nunca respondidas</option>
-                <option value="ONLY_INCORRECT">Solo preguntas falladas (Incorrectas)</option>
+                <option value="EVER_FAILED">📌 Historial de falladas (incluye las ya corregidas)</option>
+                <option value="ONLY_INCORRECT">❌ Solo incorrectas actuales (aún no corregidas)</option>
+                <option value="ONLY_UNANSWERED">⏳ Solo preguntas nunca respondidas</option>
                 <option value="ALL_QUESTIONS">Incluir todas (incluso ya acertadas)</option>
               </select>
             </div>
@@ -345,8 +351,11 @@
           <button id="setsViewRandomBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition">
             🎲 20 Random (Sin repetir acertadas)
           </button>
+          <button id="setsViewEverFailedBtn" class="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition">
+            📌 Historial de falladas (0)
+          </button>
           <button id="setsViewWrongBtn" class="px-3.5 py-2 rounded-xl bg-rose-600/10 hover:bg-rose-600/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold transition">
-            ❌ Repasar falladas de la unidad
+            ❌ Incorrectas actuales (0)
           </button>
         </div>
       </div>
@@ -401,6 +410,9 @@
                 </span>
                 <span id="qSubtopicBadge" class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                   Subtema
+                </span>
+                <span id="qEverFailedBadge" class="hidden px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                  📌 Fallada antes
                 </span>
               </div>
 
@@ -562,7 +574,11 @@
         <!-- Requested Retry Action Buttons -->
         <div class="space-y-2.5 pt-2">
           <button id="btnRetryIncorrect" onclick="app.retryCurrentSetSubset('incorrect')" class="w-full py-3.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2">
-            <span>🔄 Reintentar solo las incorrectas</span>
+            <span>🔄 Reintentar solo las incorrectas actuales</span>
+          </button>
+
+          <button id="btnRetryEverFailed" onclick="app.retryCurrentSetSubset('everFailed')" class="w-full py-3 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2">
+            <span>📌 Repasar historial de falladas de este bloque</span>
           </button>
 
           <button id="btnRetryCorrect" onclick="app.retryCurrentSetSubset('correct')" class="w-full py-3 px-4 rounded-xl bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-2">
@@ -570,7 +586,7 @@
           </button>
 
           <button onclick="app.retryCurrentSetSubset('all')" class="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition">
-            🔁 Reiniciar este set completo desde cero
+            🔁 Reiniciar este set completo (conservando historial de fallos)
           </button>
 
           <button onclick="app.returnFromSummary()" class="w-full py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition">
@@ -753,7 +769,7 @@
       unitsMap: new Map(), // unitId -> { id, bank, name, questions: [] }
       pdfDocs: { PEDIATRIA: null, GUEVARA: null },
       progress: {
-        answers: {},  // qId -> { selected: 'a', correct: true, timestamp: 123456 }
+        answers: {},  // qId -> { selected: 'a'|null, correct: true|false, everFailed: true|false, failCount: number, timestamp: 123456 }
         deleted: {},  // qId -> timestamp (tombstones so intentional retries sync cleanly across devices)
         updatedAt: 0
       },
@@ -783,6 +799,34 @@
       modalPdfBank: null,
       modalPdfPage: 1,
       modalScale: 1.5,
+
+      /* ==================== HELPERS PARA ESTADO ACTUAL VS HISTORIAL DE FALLOS ==================== */
+      isAnswered(qId) {
+        const r = this.progress.answers[qId];
+        return Boolean(r && r.selected);
+      },
+
+      isCurrentlyCorrect(qId) {
+        const r = this.progress.answers[qId];
+        return Boolean(r && r.selected && r.correct === true);
+      },
+
+      isCurrentlyIncorrect(qId) {
+        const r = this.progress.answers[qId];
+        return Boolean(r && r.selected && r.correct === false);
+      },
+
+      isEverFailed(qId) {
+        const r = this.progress.answers[qId];
+        return Boolean(r && (r.everFailed === true || r.correct === false));
+      },
+
+      getFailCount(qId) {
+        const r = this.progress.answers[qId];
+        if (!r) return 0;
+        if (typeof r.failCount === 'number' && r.failCount > 0) return r.failCount;
+        return (r.everFailed || r.correct === false) ? 1 : 0;
+      },
 
       async init() {
         this.loadTheme();
@@ -901,7 +945,7 @@
         }
       },
 
-      /* ==================== FIREBASE REALTIME CLOUD SYNC ENGINE ==================== */
+      /* ==================== FIREBASE REALTIME CLOUD SYNC ENGINE (INTACTO) ==================== */
       async loadCloudConfig() {
         let saved = null;
         try {
@@ -952,7 +996,8 @@
           }
           if (info) {
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            info.textContent = `✓ Última sincronización: hoy a las ${timeStr} (${Object.keys(this.progress.answers).length} respuestas guardadas)`;
+            const answeredCount = Object.keys(this.progress.answers).filter(k => this.isAnswered(k)).length;
+            info.textContent = `✓ Última sincronización: hoy a las ${timeStr} (${answeredCount} respuestas guardadas)`;
           }
         } else if (state === 'syncing') {
           dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
@@ -977,7 +1022,7 @@
       /**
        * Smart Question-Level Timestamp Merge:
        * Combines answers from Mobile and Tablet so neither device overwrites newer answers from the other,
-       * while respecting intentional question resets (via deleted tombstones).
+       * while ALWAYS preserving `everFailed: true` and maximum `failCount` across devices.
        */
       mergeProgressObjects(progA, progB) {
         const ansA = (progA && progA.answers) ? progA.answers : {};
@@ -1004,12 +1049,36 @@
           const latestAnsTs = Math.max(tsA, tsB);
           const delTs = mergedDeleted[qId] || 0;
 
+          // Preserve historical failure status across both records
+          const wasEverFailed = Boolean(
+            (a && (a.everFailed || a.correct === false)) ||
+            (b && (b.everFailed || b.correct === false))
+          );
+          const maxFailCount = Math.max(
+            a ? (a.failCount || (a.correct === false ? 1 : 0)) : 0,
+            b ? (b.failCount || (b.correct === false ? 1 : 0)) : 0
+          );
+
           if (delTs > latestAnsTs) {
-            // Question was intentionally reset for retry more recently than it was answered
+            // Question was reset on a device with an older format; if it had failure history, keep it as pending with everFailed
+            if (wasEverFailed) {
+              mergedAnswers[qId] = {
+                selected: null,
+                correct: false,
+                everFailed: true,
+                failCount: Math.max(1, maxFailCount),
+                timestamp: delTs
+              };
+            }
             continue;
           }
+
           if (latestAns) {
-            mergedAnswers[qId] = latestAns;
+            mergedAnswers[qId] = {
+              ...latestAns,
+              everFailed: wasEverFailed,
+              failCount: wasEverFailed ? Math.max(1, maxFailCount) : 0
+            };
           }
         }
 
@@ -1070,7 +1139,8 @@
           }
 
           if (showNotification) {
-            alert(`¡Sincronización exitosa! Total sincronizado: ${Object.keys(this.progress.answers).length} preguntas respondidas.`);
+            const answeredCount = Object.keys(this.progress.answers).filter(k => this.isAnswered(k)).length;
+            alert(`¡Sincronización exitosa! Total sincronizado: ${answeredCount} preguntas respondidas.`);
           }
         } catch (err) {
           console.warn('Error sincronizando con Firebase:', err);
@@ -1147,10 +1217,33 @@
         });
       },
 
+      /**
+       * Reinicia la respuesta actual de la pregunta para poder volver a contestarla en un ensayo,
+       * pero CONSERVA `everFailed: true` y `failCount` dentro de `this.progress.answers[qId]`
+       * para que nunca se pierda del historial de falladas ni en local ni en Firebase.
+       */
       markQuestionResetForRetry(qId) {
-        delete this.progress.answers[qId];
-        if (!this.progress.deleted) this.progress.deleted = {};
-        this.progress.deleted[qId] = Date.now();
+        const prev = this.progress.answers[qId];
+        const hadFailed = Boolean(prev && (prev.everFailed === true || prev.correct === false));
+        const prevFailCount = prev ? (prev.failCount || (prev.correct === false ? 1 : 0)) : 0;
+        const now = Date.now();
+
+        if (hadFailed) {
+          this.progress.answers[qId] = {
+            selected: null,
+            correct: false,
+            everFailed: true,
+            failCount: Math.max(1, prevFailCount),
+            timestamp: now
+          };
+          if (this.progress.deleted && this.progress.deleted[qId]) {
+            delete this.progress.deleted[qId];
+          }
+        } else {
+          delete this.progress.answers[qId];
+          if (!this.progress.deleted) this.progress.deleted = {};
+          this.progress.deleted[qId] = now;
+        }
       },
 
       /* ==================== INDEXEDDB CACHE ==================== */
@@ -1568,26 +1661,30 @@
       /* ==================== DASHBOARD & PROGRESO POR UNIDADES ==================== */
       renderDashboard() {
         let totalQ = this.questions.length;
-        let answeredQ = 0, correctQ = 0, incorrectQ = 0;
+        let answeredQ = 0, correctQ = 0, incorrectQ = 0, everFailedQ = 0;
         let pedTotal = 0, pedAns = 0, pedCor = 0;
         let guevTotal = 0, guevAns = 0, guevCor = 0;
 
         for (const q of this.questions) {
-          const rec = this.progress.answers[q.id];
           if (q.bank === 'PEDIATRIA') pedTotal++;
           else guevTotal++;
 
-          if (rec) {
+          if (this.isEverFailed(q.id)) {
+            everFailedQ++;
+          }
+
+          if (this.isAnswered(q.id)) {
             answeredQ++;
-            if (rec.correct) correctQ++;
+            const isCor = this.isCurrentlyCorrect(q.id);
+            if (isCor) correctQ++;
             else incorrectQ++;
 
             if (q.bank === 'PEDIATRIA') {
               pedAns++;
-              if (rec.correct) pedCor++;
+              if (isCor) pedCor++;
             } else {
               guevAns++;
-              if (rec.correct) guevCor++;
+              if (isCor) guevCor++;
             }
           }
         }
@@ -1606,6 +1703,11 @@
         document.getElementById('kpiAccuracyPct').textContent = `${accPct}%`;
         document.getElementById('kpiAccuracyCounts').textContent = `${correctQ} ✅ · ${incorrectQ} ❌`;
 
+        const everFailedBadge = document.getElementById('kpiEverFailedBadge');
+        if (everFailedBadge) {
+          everFailedBadge.textContent = `📌 ${everFailedQ} en historial de falladas`;
+        }
+
         document.getElementById('kpiPedPct').textContent = `${pedAns} / ${pedTotal}`;
         document.getElementById('kpiPedAcc').textContent = `${pedAcc}% acierto`;
         document.getElementById('kpiPedBar').style.width = `${pedPct}%`;
@@ -1615,6 +1717,31 @@
         document.getElementById('kpiGuevBar').style.width = `${guevPct}%`;
 
         this.renderUnitsGrid();
+      },
+
+      startGlobalEverFailedQuiz() {
+        const pool = this.questions.filter(q => {
+          if (this.bankFilter !== 'ALL' && q.bank !== this.bankFilter) return false;
+          return this.isEverFailed(q.id);
+        });
+
+        if (pool.length === 0) {
+          alert('Aún no tienes preguntas registradas en tu historial de falladas.');
+          return;
+        }
+
+        const chosen = this.shuffleArray(pool).slice(0, 20);
+        for (const q of chosen) {
+          this.markQuestionResetForRetry(q.id);
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          chosen,
+          `Historial de Falladas (${chosen.length} de ${pool.length})`,
+          'Incluye preguntas que fallaste antes aunque luego las hayas corregido',
+          0
+        );
       },
 
       setBankFilter(filter) {
@@ -1641,12 +1768,12 @@
           if (query && !unit.name.toLowerCase().includes(query)) continue;
 
           const total = unit.questions.length;
-          let answered = 0, correct = 0;
+          let answered = 0, correct = 0, everFailed = 0;
           for (const q of unit.questions) {
-            const r = this.progress.answers[q.id];
-            if (r) {
+            if (this.isEverFailed(q.id)) everFailed++;
+            if (this.isAnswered(q.id)) {
               answered++;
-              if (r.correct) correct++;
+              if (this.isCurrentlyCorrect(q.id)) correct++;
             }
           }
 
@@ -1665,15 +1792,22 @@
             ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`
             : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
 
+          const everFailedPill = everFailed > 0
+            ? `<button onclick="app.startUnitEverFailedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition" title="Practicar las ${everFailed} preguntas que alguna vez fallaste en esta unidad">📌 Historial fallos: ${everFailed}</button>`
+            : '';
+
           const card = document.createElement('div');
           card.className = 'bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm hover:border-emerald-500/60 transition flex flex-col justify-between gap-4';
           card.innerHTML = `
             <div class="space-y-2.5">
-              <div class="flex items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center justify-between gap-1.5">
                 ${bankBadge}
-                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${accBadgeColor}">
-                  ${answered > 0 ? `Acierto: ${accPct}% (${correct}/${answered})` : 'Sin intentos'}
-                </span>
+                <div class="flex items-center gap-1.5">
+                  ${everFailedPill}
+                  <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${accBadgeColor}">
+                    ${answered > 0 ? `Acierto: ${accPct}% (${correct}/${answered})` : 'Sin intentos'}
+                  </span>
+                </div>
               </div>
               <h3 class="text-base font-extrabold text-slate-900 dark:text-white leading-snug">${unit.name}</h3>
               <div class="space-y-1">
@@ -1732,11 +1866,25 @@
           ? 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/15 text-sky-400'
           : 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-indigo-500/15 text-indigo-400';
 
+        let unitCurrentWrong = 0;
+        let unitEverFailed = 0;
+        for (const q of unit.questions) {
+          if (this.isCurrentlyIncorrect(q.id)) unitCurrentWrong++;
+          if (this.isEverFailed(q.id)) unitEverFailed++;
+        }
+
         document.getElementById('setsViewTitle').textContent = unit.name;
         document.getElementById('setsViewSubtitle').textContent = `${unit.questions.length} preguntas totales divididas en bloques secuenciales de 20`;
 
         document.getElementById('setsViewRandomBtn').onclick = () => this.startUnitSmartRandom(unitId);
-        document.getElementById('setsViewWrongBtn').onclick = () => this.startUnitWrongOnly(unitId);
+
+        const everFailedBtn = document.getElementById('setsViewEverFailedBtn');
+        everFailedBtn.textContent = `📌 Historial de falladas (${unitEverFailed})`;
+        everFailedBtn.onclick = () => this.startUnitEverFailedOnly(unitId);
+
+        const wrongBtn = document.getElementById('setsViewWrongBtn');
+        wrongBtn.textContent = `❌ Incorrectas actuales (${unitCurrentWrong})`;
+        wrongBtn.onclick = () => this.startUnitWrongOnly(unitId);
 
         const grid = document.getElementById('setsBlocksGrid');
         grid.innerHTML = '';
@@ -1750,12 +1898,12 @@
           const firstNum = slice[0].num;
           const lastNum = slice[slice.length - 1].num;
 
-          let ans = 0, cor = 0, inc = 0;
+          let ans = 0, cor = 0, inc = 0, everF = 0;
           for (const q of slice) {
-            const r = this.progress.answers[q.id];
-            if (r) {
+            if (this.isEverFailed(q.id)) everF++;
+            if (this.isAnswered(q.id)) {
               ans++;
-              if (r.correct) cor++;
+              if (this.isCurrentlyCorrect(q.id)) cor++;
               else inc++;
             }
           }
@@ -1784,18 +1932,19 @@
                 <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${statusClass}">${statusLabel}</span>
               </div>
               <div class="flex items-center justify-between text-xs text-slate-500">
-                <span>${cor} ✅ · ${inc} ❌ · ${slice.length - ans} ⏳</span>
+                <span>${cor} ✅ · ${inc} ❌ · ${slice.length - ans} ⏳ ${everF > 0 ? `· <strong class="text-amber-500">📌 ${everF} hist.</strong>` : ''}</span>
                 <span>${pct}%</span>
               </div>
               <div class="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div class="h-full bg-emerald-500" style="width: ${pct}%"></div>
               </div>
             </div>
-            <div class="flex items-center gap-2 pt-1">
+            <div class="flex items-center gap-1.5 pt-1">
               <button onclick="app.startFixedSet('${unitId}', ${s})" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
                 ${ans > 0 && ans < slice.length ? 'Continuar Prueba' : 'Rendir Prueba'}
               </button>
-              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas de esta prueba" class="py-2 px-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌ (${inc})</button>` : ''}
+              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas actuales de esta prueba" class="py-2 px-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌ (${inc})</button>` : ''}
+              ${everF > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'everFailed')" title="Repasar historial de falladas de esta prueba (incluye las que ya corregiste)" class="py-2 px-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs transition">📌 (${everF})</button>` : ''}
             </div>
           `;
           grid.appendChild(blockCard);
@@ -1808,7 +1957,7 @@
         if (!unit) return;
         const startIdx = setIndex * 20;
         const slice = unit.questions.slice(startIdx, startIdx + 20);
-        let firstUnanswered = slice.findIndex(q => !this.progress.answers[q.id]);
+        let firstUnanswered = slice.findIndex(q => !this.isAnswered(q.id));
         if (firstUnanswered === -1) firstUnanswered = 0;
 
         this.launchQuizSession(
@@ -1825,9 +1974,10 @@
         const startIdx = setIndex * 20;
         const slice = unit.questions.slice(startIdx, startIdx + 20);
         const filtered = slice.filter(q => {
-          const r = this.progress.answers[q.id];
-          if (!r) return false;
-          return mode === 'incorrect' ? !r.correct : r.correct;
+          if (mode === 'everFailed') return this.isEverFailed(q.id);
+          if (mode === 'incorrect') return this.isCurrentlyIncorrect(q.id);
+          if (mode === 'correct') return this.isCurrentlyCorrect(q.id);
+          return false;
         });
         if (filtered.length === 0) return;
 
@@ -1836,9 +1986,13 @@
         }
         this.saveProgressToStorage();
 
+        const modeLabel = mode === 'everFailed'
+          ? 'Historial de Falladas'
+          : (mode === 'incorrect' ? 'Solo Incorrectas Actuales' : 'Solo Correctas');
+
         this.launchQuizSession(
           filtered,
-          `${unit.name} — Prueba ${setIndex + 1} (${mode === 'incorrect' ? 'Solo Incorrectas' : 'Solo Correctas'})`,
+          `${unit.name} — Prueba ${setIndex + 1} (${modeLabel})`,
           `Repaso focalizado de ${filtered.length} preguntas`,
           0
         );
@@ -1894,39 +2048,42 @@
 
         let selectedPool = [];
         if (filterMode === 'SMART_NO_REPEAT') {
-          selectedPool = pool.filter(q => {
-            const r = this.progress.answers[q.id];
-            return !r || !r.correct;
-          });
+          selectedPool = pool.filter(q => !this.isCurrentlyCorrect(q.id));
           if (selectedPool.length === 0) {
             alert('¡Felicitaciones! Ya has respondido correctamente todas las preguntas de esta selección. Se incluirán todas para repaso.');
             selectedPool = pool;
           }
+        } else if (filterMode === 'EVER_FAILED') {
+          selectedPool = pool.filter(q => this.isEverFailed(q.id));
         } else if (filterMode === 'ONLY_UNANSWERED') {
-          selectedPool = pool.filter(q => !this.progress.answers[q.id]);
+          selectedPool = pool.filter(q => !this.isAnswered(q.id));
         } else if (filterMode === 'ONLY_INCORRECT') {
-          selectedPool = pool.filter(q => this.progress.answers[q.id] && !this.progress.answers[q.id].correct);
+          selectedPool = pool.filter(q => this.isCurrentlyIncorrect(q.id));
         } else {
           selectedPool = pool;
         }
 
         if (selectedPool.length === 0) {
-          alert('No hay preguntas que coincidan con este filtro en la unidad seleccionada.');
+          alert('No hay preguntas que coincidan con este filtro en la selección actual.');
           return;
         }
 
         const chosen = this.shuffleArray(selectedPool).slice(0, this.randomCount);
         for (const q of chosen) {
-          if (this.progress.answers[q.id] && filterMode !== 'ONLY_UNANSWERED') {
+          if (this.isAnswered(q.id) && filterMode !== 'ONLY_UNANSWERED') {
             this.markQuestionResetForRetry(q.id);
           }
         }
         this.saveProgressToStorage();
 
+        const subLabel = filterMode === 'EVER_FAILED'
+          ? 'Historial de falladas (incluye preguntas que luego corregiste)'
+          : (filterMode === 'SMART_NO_REPEAT' ? 'Excluyendo preguntas ya acertadas' : 'Práctica personalizada');
+
         this.launchQuizSession(
           chosen,
           `Ensayo Random Inteligente (${chosen.length} preg)`,
-          filterMode === 'SMART_NO_REPEAT' ? 'Excluyendo preguntas ya acertadas' : 'Práctica personalizada',
+          subLabel,
           0
         );
       },
@@ -1936,18 +2093,14 @@
         if (!unit) return;
         this.activeUnitId = unitId;
 
-        let pool = unit.questions.filter(q => {
-          const r = this.progress.answers[q.id];
-          return !r || !r.correct;
-        });
-
+        let pool = unit.questions.filter(q => !this.isCurrentlyCorrect(q.id));
         if (pool.length === 0) {
           pool = [...unit.questions];
         }
 
         const chosen = this.shuffleArray(pool).slice(0, 20);
         for (const q of chosen) {
-          if (this.progress.answers[q.id]) this.markQuestionResetForRetry(q.id);
+          if (this.isAnswered(q.id)) this.markQuestionResetForRetry(q.id);
         }
         this.saveProgressToStorage();
 
@@ -1962,9 +2115,14 @@
       startUnitWrongOnly(unitId) {
         const unit = this.unitsMap.get(unitId);
         if (!unit) return;
-        const wrong = unit.questions.filter(q => this.progress.answers[q.id] && !this.progress.answers[q.id].correct);
+        const wrong = unit.questions.filter(q => this.isCurrentlyIncorrect(q.id));
         if (wrong.length === 0) {
-          alert('No tienes preguntas marcadas como incorrectas en esta unidad.');
+          const histCount = unit.questions.filter(q => this.isEverFailed(q.id)).length;
+          if (histCount > 0) {
+            alert(`No tienes preguntas incorrectas actuales en esta unidad (¡ya las corregiste!), pero tienes ${histCount} en tu "📌 Historial de falladas". Usa el botón ámbar de Historial para repasarlas.`);
+          } else {
+            alert('No tienes preguntas marcadas como incorrectas en esta unidad.');
+          }
           return;
         }
         for (const q of wrong) {
@@ -1974,8 +2132,32 @@
 
         this.launchQuizSession(
           wrong,
-          `${unit.name} — Repaso de Incorrectas`,
-          `${wrong.length} preguntas falladas en esta unidad`,
+          `${unit.name} — Incorrectas Actuales`,
+          `${wrong.length} preguntas pendientes de corregir en esta unidad`,
+          0
+        );
+      },
+
+      startUnitEverFailedOnly(unitId) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit) return;
+        this.activeUnitId = unitId;
+
+        const everFailedList = unit.questions.filter(q => this.isEverFailed(q.id));
+        if (everFailedList.length === 0) {
+          alert('No tienes preguntas registradas en el historial de falladas de esta unidad.');
+          return;
+        }
+
+        for (const q of everFailedList) {
+          this.markQuestionResetForRetry(q.id);
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          everFailedList,
+          `${unit.name} — Historial de Falladas`,
+          `${everFailedList.length} preguntas que alguna vez fallaste en esta unidad (incluye las ya corregidas)`,
           0
         );
       },
@@ -2008,12 +2190,25 @@
 
         const total = this.activeQuestions.length;
         const ansRecord = this.progress.answers[q.id];
+        const hasSelection = Boolean(ansRecord && ansRecord.selected);
 
         document.getElementById('qCounterBadge').textContent = `Pregunta ${this.currentIndex + 1} / ${total} (#${q.num})`;
         document.getElementById('qBankBadge').textContent = q.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara';
         document.getElementById('qSubtopicBadge').textContent = q.subtopic || q.unit;
         document.getElementById('qPageBtnText').textContent = `Ver lámina (Pág. ${q.page})`;
         document.getElementById('mobileGridBtnCount').textContent = `${this.currentIndex + 1}/${total}`;
+
+        // Show badge if this question was ever failed in the past
+        const everFailedBadge = document.getElementById('qEverFailedBadge');
+        if (everFailedBadge) {
+          if (this.isEverFailed(q.id)) {
+            const fc = this.getFailCount(q.id);
+            everFailedBadge.textContent = fc > 1 ? `📌 Fallada antes (${fc}x)` : '📌 En historial de falladas';
+            everFailedBadge.classList.remove('hidden');
+          } else {
+            everFailedBadge.classList.add('hidden');
+          }
+        }
 
         // Proposed Answer Warning Banner
         const propWarn = document.getElementById('qProposedWarning');
@@ -2045,7 +2240,7 @@
           let baseClass = 'w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all flex items-start gap-3 group ';
           let badgeClass = 'w-7 h-7 rounded-lg font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 transition-colors ';
 
-          if (!ansRecord) {
+          if (!hasSelection) {
             baseClass += 'bg-slate-50/70 hover:bg-emerald-500/5 dark:bg-slate-800/50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700/80 hover:border-emerald-500/60';
             badgeClass += 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 group-hover:border-emerald-500 group-hover:text-emerald-500';
             btn.onclick = () => this.selectOption(letter);
@@ -2075,7 +2270,7 @@
 
         // Render Immediate Feedback Panel
         const fbPanel = document.getElementById('qFeedbackPanel');
-        if (ansRecord) {
+        if (hasSelection) {
           fbPanel.classList.remove('hidden');
           const statusBadge = document.getElementById('qFeedbackStatusBadge');
           const propTag = document.getElementById('qFeedbackProposedTag');
@@ -2111,13 +2306,22 @@
 
       selectOption(letter) {
         const q = this.activeQuestions[this.currentIndex];
-        if (!q || this.progress.answers[q.id]) return;
+        if (!q || this.isAnswered(q.id)) return;
 
         const isCorrect = letter.toLowerCase() === q.answer.toLowerCase();
         const now = Date.now();
+        const prev = this.progress.answers[q.id];
+        const prevEverFailed = Boolean(prev && (prev.everFailed === true || prev.correct === false));
+        const prevFailCount = prev ? (prev.failCount || (prev.correct === false ? 1 : 0)) : 0;
+
+        const newEverFailed = prevEverFailed || !isCorrect;
+        const newFailCount = !isCorrect ? (prevFailCount + 1) : prevFailCount;
+
         this.progress.answers[q.id] = {
           selected: letter.toLowerCase(),
           correct: isCorrect,
+          everFailed: newEverFailed,
+          failCount: newFailCount,
           timestamp: now
         };
         if (this.progress.deleted && this.progress.deleted[q.id]) {
@@ -2136,24 +2340,26 @@
           if (!container) return;
           container.innerHTML = '';
           this.activeQuestions.forEach((q, idx) => {
-            const r = this.progress.answers[q.id];
+            const answered = this.isAnswered(q.id);
+            const isCor = this.isCurrentlyCorrect(q.id);
+            const everF = this.isEverFailed(q.id);
             const btn = document.createElement('button');
-            let cls = 'h-10 rounded-xl font-bold text-xs transition flex items-center justify-center border ';
+            let cls = 'h-10 rounded-xl font-bold text-xs transition flex items-center justify-center border relative ';
 
             if (idx === this.currentIndex) {
               cls += 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-slate-900 ';
             }
 
-            if (!r) {
+            if (!answered) {
               cls += 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700';
-            } else if (r.correct) {
+            } else if (isCor) {
               cls += 'bg-emerald-600 text-white border-emerald-500';
             } else {
               cls += 'bg-rose-600 text-white border-rose-500';
             }
 
             btn.className = cls;
-            btn.textContent = idx + 1;
+            btn.innerHTML = `${idx + 1}${everF ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1 right-1" title="En historial de falladas"></span>' : ''}`;
             btn.onclick = () => {
               this.currentIndex = idx;
               if (isMobile) this.toggleMobileNavSheet(false);
@@ -2164,10 +2370,9 @@
         };
 
         for (const q of this.activeQuestions) {
-          const r = this.progress.answers[q.id];
-          if (r) {
+          if (this.isAnswered(q.id)) {
             ans++;
-            if (r.correct) cor++;
+            if (this.isCurrentlyCorrect(q.id)) cor++;
             else inc++;
           }
         }
@@ -2208,11 +2413,11 @@
         document.getElementById('quizView').classList.add('hidden');
         document.getElementById('summaryView').classList.remove('hidden');
 
-        let cor = 0, inc = 0;
+        let cor = 0, inc = 0, everF = 0;
         for (const q of this.activeQuestions) {
-          const r = this.progress.answers[q.id];
-          if (r) {
-            if (r.correct) cor++;
+          if (this.isEverFailed(q.id)) everF++;
+          if (this.isAnswered(q.id)) {
+            if (this.isCurrentlyCorrect(q.id)) cor++;
             else inc++;
           }
         }
@@ -2227,9 +2432,15 @@
         document.getElementById('sumIncorrectCount').textContent = inc;
 
         const btnInc = document.getElementById('btnRetryIncorrect');
+        const btnEver = document.getElementById('btnRetryEverFailed');
         const btnCor = document.getElementById('btnRetryCorrect');
+
         btnInc.classList.toggle('hidden', inc === 0);
-        btnInc.textContent = `🔄 Reintentar solo las incorrectas (${inc})`;
+        btnInc.textContent = `🔄 Reintentar solo las incorrectas actuales (${inc})`;
+
+        btnEver.classList.toggle('hidden', everF === 0);
+        btnEver.textContent = `📌 Repasar historial de falladas de este bloque (${everF})`;
+
         btnCor.classList.toggle('hidden', cor === 0);
         btnCor.textContent = `✅ Reintentar solo las correctas (${cor})`;
 
@@ -2239,9 +2450,11 @@
       retryCurrentSetSubset(mode) {
         let subset = [];
         if (mode === 'incorrect') {
-          subset = this.activeQuestions.filter(q => this.progress.answers[q.id] && !this.progress.answers[q.id].correct);
+          subset = this.activeQuestions.filter(q => this.isCurrentlyIncorrect(q.id));
+        } else if (mode === 'everFailed') {
+          subset = this.activeQuestions.filter(q => this.isEverFailed(q.id));
         } else if (mode === 'correct') {
-          subset = this.activeQuestions.filter(q => this.progress.answers[q.id] && this.progress.answers[q.id].correct);
+          subset = this.activeQuestions.filter(q => this.isCurrentlyCorrect(q.id));
         } else {
           subset = [...this.activeQuestions];
         }
@@ -2253,7 +2466,14 @@
         }
         this.saveProgressToStorage();
 
-        const label = mode === 'incorrect' ? 'Reintento Incorrectas' : mode === 'correct' ? 'Reintento Correctas' : 'Reinicio Completo';
+        const label = mode === 'incorrect'
+          ? 'Reintento Incorrectas'
+          : mode === 'everFailed'
+          ? 'Historial de Falladas'
+          : mode === 'correct'
+          ? 'Reintento Correctas'
+          : 'Reinicio Completo';
+
         this.launchQuizSession(subset, `${this.activeQuizTitle} (${label})`, `${subset.length} preguntas`, 0);
       },
 
