@@ -57,7 +57,6 @@
     @media (min-width: 1024px) {
       .quiz-pb-safe { padding-bottom: 2.5rem; }
     }
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
@@ -138,7 +137,7 @@
     </div>
   </header>
 
-  <!-- PRIVATE BROWSING / STORAGE WARNING BANNER (Hidden unless storage fails) -->
+  <!-- PRIVATE BROWSING / STORAGE WARNING BANNER -->
   <div id="storageWarningBanner" class="hidden bg-rose-950/90 text-rose-200 border-b border-rose-800 px-4 py-2.5 text-xs text-center">
     ⚠️ <strong>Modo Privado detectado o memoria restringida:</strong> Tu navegador está bloqueando el guardado permanente local. Desactiva la Navegación Privada o conecta la sincronización con Firebase en <strong>"Nube / Datos"</strong>.
   </div>
@@ -158,7 +157,6 @@
       <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
         <div id="loaderProgressBar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%"></div>
       </div>
-      <!-- Manual Fallback Box (shown if fetch fails on file:// protocol) -->
       <div id="manualFallbackBox" class="hidden mt-3 pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <p class="text-xs text-amber-300 leading-relaxed">
           ⚠️ Si abriste <code class="bg-slate-800 px-1 py-0.5 rounded">index.html</code> con doble clic local (<code class="bg-slate-800 px-1 py-0.5 rounded">file://</code>), el navegador bloquea <code class="bg-slate-800 px-1 py-0.5 rounded">fetch</code> por seguridad CORS. En <strong>GitHub Pages</strong> carga automático; aquí puedes seleccionar los PDFs manualmente una sola vez (quedarán guardados en caché):
@@ -267,9 +265,7 @@
 
       <!-- TAB 1 CONTENT: PROGRESO POR UNIDADES -->
       <div id="tabContentUnits" class="space-y-4">
-        <div id="unitsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Dynamically populated unit cards -->
-        </div>
+        <div id="unitsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
       <!-- TAB 2 CONTENT: PREGUNTAS GUARDADAS POR CAPÍTULO -->
@@ -290,9 +286,7 @@
           </div>
         </div>
 
-        <div id="savedChaptersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Dynamically populated saved chapter cards -->
-        </div>
+        <div id="savedChaptersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
 
       <!-- TAB 3 CONTENT: MODO RANDOM INTELIGENTE (SIN REPETIR) -->
@@ -395,9 +389,26 @@
           </div>
         </div>
 
-        <div id="repasosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Dynamically populated repaso cards -->
+        <!-- Diagnostic / Missing PDFs Helper Banner (only shown if some Repaso PDFs haven't been loaded yet) -->
+        <div id="repasosMissingBanner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-1 text-xs">
+            <p class="font-bold text-amber-700 dark:text-amber-300" id="repasosMissingTitle">
+              ⚠️ Faltan PDFs de Repaso por detectar en la raíz de GitHub:
+            </p>
+            <p class="text-slate-600 dark:text-slate-400 leading-relaxed" id="repasosMissingList"></p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="app.retryFetchRepasosOnly()" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition">
+              🔄 Reintentar GitHub
+            </button>
+            <label class="cursor-pointer px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
+              📂 Cargar PDFs
+              <input type="file" accept=".pdf" multiple class="hidden" onchange="app.handleManualFiles(this.files)" />
+            </label>
+          </div>
         </div>
+
+        <div id="repasosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
     </section>
 
@@ -438,9 +449,7 @@
       </div>
 
       <!-- Grid of 20-question blocks -->
-      <div id="setsBlocksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        <!-- Populated dynamically -->
-      </div>
+      <div id="setsBlocksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
     </section>
 
     <!-- ==================== VIEW 3: INTERACTIVE PRACTICE / QUIZ INTERFACE ==================== -->
@@ -469,10 +478,10 @@
         </div>
       </div>
 
-      <!-- Main 2-Column Quiz Layout on Desktop, Single Column + Swipe on Mobile -->
+      <!-- Main 2-Column Quiz Layout -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-        <!-- Left / Center Question Card (8 cols on lg) -->
+        <!-- Left / Center Question Card -->
         <div id="questionTouchArea" class="lg:col-span-8 space-y-4">
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-5">
 
@@ -495,7 +504,7 @@
 
               <div class="flex items-center gap-1.5">
                 <!-- Bookmark / Save Question Button -->
-                <button onclick="app.toggleBookmarkCurrentQuestion()" id="qBookmarkBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition" title="Guardar/Desmarcar pregunta para revisitar por capítulo (Atajo: tecla G)">
+                <button onclick="app.toggleBookmarkCurrentQuestion()" id="qBookmarkBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition" title="Guardar/Desmarcar pregunta (Atajo: tecla G)">
                   <span id="qBookmarkIcon">☆</span>
                   <span id="qBookmarkText">Guardar</span>
                 </button>
@@ -511,7 +520,7 @@
               </div>
             </div>
 
-            <!-- Yellow Proposed Answer Banner (if question is proposed/unverified in original) -->
+            <!-- Yellow Proposed Answer Banner -->
             <div id="qProposedWarning" class="hidden p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5">
               <span class="text-base leading-none">⚠️</span>
               <div>
@@ -525,7 +534,7 @@
               Enunciado de la pregunta...
             </div>
 
-            <!-- Inline Clinical Image Canvas (Auto-displayed when ECG / Rx / Image cue is detected) -->
+            <!-- Inline Clinical Image Canvas -->
             <div id="inlineImageContainer" class="hidden space-y-2 pt-1">
               <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800/90 px-3 py-1.5 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
                 <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
@@ -541,9 +550,7 @@
             </div>
 
             <!-- Options List (a - e) -->
-            <div id="qOptionsContainer" class="space-y-2.5 pt-1">
-              <!-- Populated dynamically -->
-            </div>
+            <div id="qOptionsContainer" class="space-y-2.5 pt-1"></div>
 
             <!-- Immediate Feedback & Explanation Panel -->
             <div id="qFeedbackPanel" class="hidden rounded-2xl border p-4 sm:p-5 space-y-3 transition-all">
@@ -584,16 +591,14 @@
           </div>
         </div>
 
-        <!-- Right Sidebar on Desktop: Question Navigator 1..N (4 cols on lg) -->
+        <!-- Right Sidebar on Desktop: Question Navigator 1..N -->
         <div class="hidden lg:block lg:col-span-4 sticky top-20 space-y-4">
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Navegador del Set</h3>
               <span id="navProgressTextDesktop" class="text-xs font-semibold text-slate-600 dark:text-slate-300">0/20</span>
             </div>
-            <div id="questionGridDesktop" class="grid grid-cols-5 gap-2 max-h-[60vh] overflow-y-auto pr-1">
-              <!-- 1..N buttons -->
-            </div>
+            <div id="questionGridDesktop" class="grid grid-cols-5 gap-2 max-h-[60vh] overflow-y-auto pr-1"></div>
             <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
               <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Historial fallo</span>
               <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-violet-400"></span> Guardada ⭐</span>
@@ -603,7 +608,7 @@
 
       </div>
 
-      <!-- MOBILE FIXED BOTTOM ACTION BAR (Thumb Ergonomics) -->
+      <!-- MOBILE FIXED BOTTOM ACTION BAR -->
       <div class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 pt-2.5 safe-bottom">
         <div class="max-w-lg mx-auto grid grid-cols-5 gap-1.5">
           <button onclick="app.prevQuestion()" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center">
@@ -798,17 +803,11 @@
 
   <!-- ==================== APPLICATION JAVASCRIPT ENGINE ==================== -->
   <script>
-    // Configure PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const DEFAULT_FIREBASE_URL = 'https://euncompro-default-rtdb.firebaseio.com/';
     const DEFAULT_USER_SYNC_KEY = 'cristobal_eunacom';
 
-    /**
-     * Exact Canonical Chapter / Page Maps calibrated to:
-     * 1) Banco_EUNACOM_Guevara.pdf (701 pages, 19 chapters, questions start on page 10)
-     * 2) Banco_EUNACOM_Pediatria.pdf (138 pages, 14 chapters, questions start on page 1)
-     */
     const GUEVARA_CHAPTERS = [
       { name: "Cardiología", start: 10, end: 56 },
       { name: "Respiratorio", start: 57, end: 90 },
@@ -848,9 +847,6 @@
       { name: "Intoxicaciones y misceláneos", start: 137, end: 140 }
     ];
 
-    /**
-     * Catalog of the 8 Repaso & Reconstrucción PDFs placed in the root of the GitHub repository.
-     */
     const REPASO_SOURCES = [
       {
         key: 'REPASO_M1_P1',
@@ -919,14 +915,15 @@
     const IDB_STORE = 'questionBankStore';
 
     const app = {
-      baseQuestions: [],   // Pediatría + Guevara (exact original IDs)
-      repasoQuestions: [], // 8 Repaso & Reconstrucción PDFs
-      questions: [],       // Combined array
-      unitsMap: new Map(), // unitId -> { id, bank, name, category, subtopic, questions: [] }
+      baseQuestions: [],
+      repasoQuestions: [],
+      questions: [],
+      unitsMap: new Map(),
       pdfDocs: { PEDIATRIA: null, GUEVARA: null },
+      githubRootFiles: null, // Cached list of files in GitHub repo root
       progress: {
-        answers: {},  // qId -> { selected: 'a'|null, correct: true|false, everFailed: bool, failCount: num, bookmarked: bool, bookmarkUpdatedAt: num, timestamp: num }
-        deleted: {},  // qId -> timestamp
+        answers: {},
+        deleted: {},
         updatedAt: 0
       },
       cloudConfig: {
@@ -940,19 +937,16 @@
       randomCount: 20,
       lastMainTab: 'units',
 
-      // Active Quiz State
       activeUnitId: null,
       activeQuizTitle: '',
       activeQuizSubtitle: '',
       activeQuestions: [],
       currentIndex: 0,
 
-      // Timer State
       timerSeconds: 0,
       timerInterval: null,
       timerPaused: false,
 
-      // Modal PDF Viewer State
       modalPdfBank: null,
       modalPdfPage: 1,
       modalScale: 1.5,
@@ -1046,19 +1040,20 @@
         }
 
         const cachedBase = await this.getFromIndexedDB('parsedQuestions');
-        const cachedRepasos = await this.getFromIndexedDB('parsedRepasos_v2');
+        const cachedRepasos = await this.getFromIndexedDB('parsedRepasos_v3');
 
         const hasBase = Array.isArray(cachedBase) && cachedBase.length > 100;
-        const hasRepasos = Array.isArray(cachedRepasos) && cachedRepasos.length > 50;
+        const loadedKeys = new Set(Array.isArray(cachedRepasos) ? cachedRepasos.map(q => q.pdfKey) : []);
+        const hasAllRepasos = Array.isArray(cachedRepasos) && loadedKeys.size >= REPASO_SOURCES.length;
 
         if (hasBase) {
           this.baseQuestions = cachedBase;
         }
-        if (hasRepasos) {
+        if (Array.isArray(cachedRepasos) && cachedRepasos.length > 0) {
           this.repasoQuestions = cachedRepasos;
         }
 
-        if (hasBase && hasRepasos) {
+        if (hasBase && hasAllRepasos) {
           this.questions = [...this.baseQuestions, ...this.repasoQuestions];
           this.buildUnitsIndex();
           this.updateLoader(100, `Bancos y Repasos cargados desde caché (${this.questions.length} preguntas).`);
@@ -1071,10 +1066,10 @@
           return;
         }
 
-        await this.autoFetchAndParseMissingPDFs(hasBase, hasRepasos);
+        await this.autoFetchAndParseMissingPDFs(hasBase, hasAllRepasos);
       },
 
-      /* ==================== PERSISTENT STORAGE & DUAL BACKUP (LOCALSTORAGE + INDEXEDDB) ==================== */
+      /* ==================== PERSISTENT STORAGE & DUAL BACKUP ==================== */
       async requestPersistentStorage() {
         try {
           if (navigator.storage && navigator.storage.persist) {
@@ -1150,7 +1145,7 @@
         }
       },
 
-      /* ==================== FIREBASE REALTIME CLOUD SYNC ENGINE (INTACTO) ==================== */
+      /* ==================== FIREBASE REALTIME CLOUD SYNC ENGINE ==================== */
       async loadCloudConfig() {
         let saved = null;
         try {
@@ -1495,7 +1490,7 @@
         }
       },
 
-      /* ==================== PDF.JS FETCH & PARSER ENGINE ==================== */
+      /* ==================== SMART GITHUB / UNICODE FILE RESOLVER & LOADER ==================== */
       updateLoader(pct, text) {
         const bar = document.getElementById('loaderProgressBar');
         const pctEl = document.getElementById('loaderPercentText');
@@ -1513,26 +1508,87 @@
         }
       },
 
+      /**
+       * Queries GitHub Contents API if running on *.github.io so we discover exact byte-for-byte
+       * filenames (handling macOS NFD vs Windows/Linux NFC accents, spaces, underscores, or °).
+       */
+      async discoverGithubRepoFiles() {
+        if (this.githubRootFiles) return this.githubRootFiles;
+        try {
+          const host = window.location.hostname;
+          if (!host.endsWith('.github.io')) return [];
+          const owner = host.split('.')[0];
+          const pathParts = window.location.pathname.split('/').filter(Boolean);
+          const repo = pathParts.length > 0 ? pathParts[0] : `${owner}.github.io`;
+          const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/`;
+          const res = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
+          if (!res.ok) return [];
+          const list = await res.json();
+          if (Array.isArray(list)) {
+            this.githubRootFiles = list.filter(item => item.type === 'file' && item.name.toLowerCase().endsWith('.pdf'));
+            return this.githubRootFiles;
+          }
+        } catch (e) {}
+        return [];
+      },
+
+      normalizeFilenameKey(str) {
+        return (str || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '');
+      },
+
+      async fetchPdfBufferSmart(filename) {
+        // 1. Try direct relative fetch with NFC and NFD Unicode forms
+        const candidates = new Set([
+          `./${encodeURIComponent(filename.normalize('NFC'))}`,
+          `./${encodeURIComponent(filename.normalize('NFD'))}`
+        ]);
+
+        // 2. Also check GitHub API file listing for an exact or accent-insensitive match
+        const ghFiles = await this.discoverGithubRepoFiles();
+        if (ghFiles && ghFiles.length > 0) {
+          const targetKey = this.normalizeFilenameKey(filename);
+          const matched = ghFiles.find(f =>
+            f.name === filename ||
+            this.normalizeFilenameKey(f.name) === targetKey
+          );
+          if (matched) {
+            candidates.add(`./${encodeURIComponent(matched.name)}`);
+            if (matched.download_url) candidates.add(matched.download_url);
+          }
+        }
+
+        for (const url of candidates) {
+          try {
+            const res = await fetch(url);
+            if (res.ok) {
+              return await res.arrayBuffer();
+            }
+          } catch (e) {}
+        }
+        return null;
+      },
+
       async ensurePdfDocLoaded(docKey) {
         if (this.pdfDocs[docKey]) return this.pdfDocs[docKey];
 
         let buf = await this.getFromIndexedDB(`pdfBuffer_${docKey}`);
         if (!buf) {
-          let url = null;
-          if (docKey === 'PEDIATRIA') url = './Banco_EUNACOM_Pediatria.pdf';
-          else if (docKey === 'GUEVARA') url = './Banco_EUNACOM_Guevara.pdf';
+          let filename = null;
+          if (docKey === 'PEDIATRIA') filename = 'Banco_EUNACOM_Pediatria.pdf';
+          else if (docKey === 'GUEVARA') filename = 'Banco_EUNACOM_Guevara.pdf';
           else {
             const repMeta = REPASO_SOURCES.find(r => r.key === docKey);
-            if (repMeta) url = `./${encodeURIComponent(repMeta.filename)}`;
+            if (repMeta) filename = repMeta.filename;
           }
-          if (url) {
-            try {
-              const res = await fetch(url);
-              if (res.ok) {
-                buf = await res.arrayBuffer();
-                await this.saveToIndexedDB(`pdfBuffer_${docKey}`, buf);
-              }
-            } catch (e) {}
+          if (filename) {
+            buf = await this.fetchPdfBufferSmart(filename);
+            if (buf) {
+              await this.saveToIndexedDB(`pdfBuffer_${docKey}`, buf);
+            }
           }
         }
 
@@ -1555,23 +1611,19 @@
         } catch (e) {}
       },
 
-      async autoFetchAndParseMissingPDFs(hasBase, hasRepasos) {
+      async autoFetchAndParseMissingPDFs(hasBase, hasAllRepasos) {
         let fetchedAny = false;
 
         if (!hasBase) {
           try {
             this.updateLoader(2, 'Descargando Banco_EUNACOM_Pediatria.pdf y Banco_EUNACOM_Guevara.pdf...');
-            const [resPed, resGuev] = await Promise.all([
-              fetch('./Banco_EUNACOM_Pediatria.pdf'),
-              fetch('./Banco_EUNACOM_Guevara.pdf')
+            const [bufPed, bufGuev] = await Promise.all([
+              this.fetchPdfBufferSmart('Banco_EUNACOM_Pediatria.pdf'),
+              this.fetchPdfBufferSmart('Banco_EUNACOM_Guevara.pdf')
             ]);
 
-            if (resPed.ok && resGuev.ok) {
-              const [bufPed, bufGuev] = await Promise.all([
-                resPed.arrayBuffer(),
-                resGuev.arrayBuffer()
-              ]);
-              await this.processBasePdfBuffers(bufPed, bufGuev, 0, 55);
+            if (bufPed && bufGuev) {
+              await this.processBasePdfBuffers(bufPed, bufGuev, 0, 50);
               fetchedAny = true;
             }
           } catch (err) {
@@ -1579,27 +1631,32 @@
           }
         }
 
-        if (!hasRepasos) {
-          const startPct = hasBase ? 5 : 55;
-          const endPct = 98;
-          const step = (endPct - startPct) / REPASO_SOURCES.length;
-          const parsedRepasos = [];
+        if (!hasAllRepasos) {
+          const existingByKey = new Map();
+          for (const q of this.repasoQuestions) {
+            if (!existingByKey.has(q.pdfKey)) existingByKey.set(q.pdfKey, []);
+            existingByKey.get(q.pdfKey).push(q);
+          }
 
-          for (let idx = 0; idx < REPASO_SOURCES.length; idx++) {
-            const src = REPASO_SOURCES[idx];
+          const missingSources = REPASO_SOURCES.filter(s => !existingByKey.has(s.key) || existingByKey.get(s.key).length === 0);
+          const startPct = hasBase ? 5 : 50;
+          const endPct = 98;
+          const step = (endPct - startPct) / Math.max(1, missingSources.length);
+
+          for (let idx = 0; idx < missingSources.length; idx++) {
+            const src = missingSources[idx];
             const curPct = startPct + idx * step;
-            this.updateLoader(curPct, `Cargando Repaso (${idx + 1}/${REPASO_SOURCES.length}): ${src.unitName}...`);
+            this.updateLoader(curPct, `Cargando Repaso (${idx + 1}/${missingSources.length}): ${src.unitName}...`);
 
             try {
-              const res = await fetch(`./${encodeURIComponent(src.filename)}`);
-              if (!res.ok) continue;
-              const buf = await res.arrayBuffer();
+              const buf = await this.fetchPdfBufferSmart(src.filename);
+              if (!buf) continue;
               await this.saveToIndexedDB(`pdfBuffer_${src.key}`, buf);
               this.pdfDocs[src.key] = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
 
               const qs = await this.extractMoodleRepasoQuestions(this.pdfDocs[src.key], src);
               if (qs.length > 0) {
-                parsedRepasos.push(...qs);
+                existingByKey.set(src.key, qs);
                 fetchedAny = true;
               }
             } catch (e) {
@@ -1607,9 +1664,16 @@
             }
           }
 
-          if (parsedRepasos.length > 0) {
-            this.repasoQuestions = parsedRepasos;
-            await this.saveToIndexedDB('parsedRepasos_v2', this.repasoQuestions);
+          const mergedRepasos = [];
+          for (const src of REPASO_SOURCES) {
+            if (existingByKey.has(src.key)) {
+              mergedRepasos.push(...existingByKey.get(src.key));
+            }
+          }
+
+          if (mergedRepasos.length > 0) {
+            this.repasoQuestions = mergedRepasos;
+            await this.saveToIndexedDB('parsedRepasos_v3', this.repasoQuestions);
           }
         }
 
@@ -1631,6 +1695,13 @@
         }
       },
 
+      async retryFetchRepasosOnly() {
+        document.getElementById('loaderBanner').classList.remove('hidden');
+        document.getElementById('loaderSpinner').classList.remove('hidden');
+        this.githubRootFiles = null;
+        await this.autoFetchAndParseMissingPDFs(this.baseQuestions.length > 0, false);
+      },
+
       async handleManualFiles(fileList) {
         if (!fileList || fileList.length === 0) return;
         document.getElementById('loaderBanner').classList.remove('hidden');
@@ -1643,30 +1714,31 @@
 
         for (const file of fileList) {
           const lower = file.name.toLowerCase();
+          const normName = this.normalizeFilenameKey(file.name);
           const buf = await file.arrayBuffer();
 
-          if (lower.startsWith('1.1.-') || (lower.includes('repaso módulo 1') && !lower.includes('soluci'))) {
+          if (lower.startsWith('1.1.-') || (normName.includes('repasomodulo1') && !normName.includes('solucion'))) {
             continue;
           }
 
           const matchedRepaso = REPASO_SOURCES.find(r =>
-            r.filename.toLowerCase() === lower ||
-            lower.includes(r.unitName.toLowerCase().slice(0, 18)) ||
-            (lower.includes('reconstrucci') && lower.includes('parte i') && !lower.includes('parte ii') && r.key === 'REPASO_REC_2021_1') ||
-            (lower.includes('reconstrucci') && lower.includes('parte ii') && r.key === 'REPASO_REC_2021_2') ||
-            (lower.includes('capítulo 2') && r.key === 'REPASO_C2_P1') ||
-            (lower.includes('final 1') && lower.includes('3') && r.key === 'REPASO_C3_P1') ||
-            (lower.includes('final 2') && lower.includes('3') && r.key === 'REPASO_C3_P2') ||
-            (lower.includes('final 3') && lower.includes('3') && r.key === 'REPASO_C3_P3') ||
-            (lower.includes('final 4') && lower.includes('3') && r.key === 'REPASO_C3_P4') ||
-            (lower.includes('repaso') && lower.includes('soluci') && r.key === 'REPASO_M1_P1')
+            this.normalizeFilenameKey(r.filename) === normName ||
+            normName.includes(this.normalizeFilenameKey(r.unitName).slice(0, 18)) ||
+            (normName.includes('reconstruccion') && normName.includes('partei') && !normName.includes('parteii') && r.key === 'REPASO_REC_2021_1') ||
+            (normName.includes('reconstruccion') && normName.includes('parteii') && r.key === 'REPASO_REC_2021_2') ||
+            (normName.includes('capitulo2') && r.key === 'REPASO_C2_P1') ||
+            (normName.includes('final1') && normName.includes('3') && r.key === 'REPASO_C3_P1') ||
+            (normName.includes('final2') && normName.includes('3') && r.key === 'REPASO_C3_P2') ||
+            (normName.includes('final3') && normName.includes('3') && r.key === 'REPASO_C3_P3') ||
+            (normName.includes('final4') && normName.includes('3') && r.key === 'REPASO_C3_P4') ||
+            (normName.includes('repaso') && normName.includes('solucion') && r.key === 'REPASO_M1_P1')
           );
 
           if (matchedRepaso) {
             repasoFiles.push({ src: matchedRepaso, buf });
-          } else if (lower.includes('pediatria') || lower.includes('pediatría')) {
+          } else if (normName.includes('pediatria')) {
             bufPed = buf;
-          } else if (lower.includes('guevara')) {
+          } else if (normName.includes('guevara')) {
             bufGuev = buf;
           }
         }
@@ -1693,7 +1765,7 @@
           }
 
           this.repasoQuestions = Array.from(existingMap.values());
-          await this.saveToIndexedDB('parsedRepasos_v2', this.repasoQuestions);
+          await this.saveToIndexedDB('parsedRepasos_v3', this.repasoQuestions);
         }
 
         this.questions = [...this.baseQuestions, ...this.repasoQuestions];
@@ -2004,28 +2076,22 @@
         return bestLetter;
       },
 
-      /**
-       * Separates Moodle's two-column layout:
-       * Left sidebar column (Pregunta N, Sin contestar, Correcta, Incorrecta, Puntúa como, 1,00)
-       * vs. Right main content column (Stem, Options a-e, Explanation, La respuesta correcta es:).
-       * This prevents horizontal Y-merging of left metadata with the question stem!
-       */
       async extractMoodleEventsSpatial(pdfDoc) {
         const numPages = pdfDoc.numPages;
-        const events = []; // { page, y, type: 'Q_START' | 'CONTENT', qNum?, text }
-        let detectedSplitX = 115; // Default X boundary between left metadata box and right question column
+        const events = [];
+        const SIDEBAR_NOISE_REGEX = /^(?:Pregunta\s+\d{1,3}|Sin contestar|Correcta|Incorrecta|Parcialmente correcta|Punt[uú]a como|Se punt[uú]a|sobre 1,00|1,00|0,00|Marcar|pregunta|Marcar pregunta|ill|11\.|a[uú]n|in|responder|sponder|ponder|onder|donder|esponder|t[uú]a como|úa como|como|unta\s+\d+|egunta\s+\d+|nta\s+\d+|ta\s+\d+)$/i;
+
+        let sidebarMaxX = 115;
 
         for (let p = 1; p <= numPages; p++) {
           const page = await pdfDoc.getPage(p);
           const textContent = await page.getTextContent();
           const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
 
-          // Calibrate X split on this page if "Pregunta N" is present
           const pregItems = items.filter(it => /^Pregunta\s+\d{1,3}\b/i.test(it.str.trim()));
           if (pregItems.length > 0) {
             const leftX = Math.min(...pregItems.map(it => it.transform[4]));
-            // In Moodle print-to-PDF, the metadata box is ~85-95pt wide; content starts ~100pt to the right of leftX
-            detectedSplitX = leftX + 75;
+            sidebarMaxX = leftX + 65;
           }
 
           const leftItems = [];
@@ -2033,7 +2099,9 @@
 
           for (const it of items) {
             const x = it.transform[4];
-            if (x < detectedSplitX) {
+            const str = it.str.trim();
+            // Only send items to leftItems if they are in the left column AND look like Moodle sidebar labels
+            if (x < sidebarMaxX && SIDEBAR_NOISE_REGEX.test(str)) {
               leftItems.push(it);
             } else {
               rightItems.push(it);
@@ -2045,13 +2113,12 @@
 
           const pageEvents = [];
 
-          // Extract only "Pregunta N" anchors from the left column (discarding Sin contestar / Puntúa como / 1,00 / Marcar pregunta)
           for (const l of leftLines) {
             const m = l.text.match(/^Pregunta\s+(\d{1,3})\b/i);
             if (m) {
               pageEvents.push({
                 page: p,
-                y: l.y + 4, // Slightly above top line of stem so Q_START fires just before line 1
+                y: l.y + 4,
                 type: 'Q_START',
                 qNum: parseInt(m[1], 10),
                 text: `Pregunta ${m[1]}`
@@ -2059,17 +2126,31 @@
             }
           }
 
-          // Extract all content lines from the right column
           for (const r of rightLines) {
-            pageEvents.push({
-              page: p,
-              y: r.y,
-              type: 'CONTENT',
-              text: r.text
-            });
+            // Also detect inline "Pregunta N" if a PDF was exported in single-column layout
+            const inlineQ = r.text.match(/^Pregunta\s+(\d{1,3})\b(.*)$/i);
+            if (inlineQ) {
+              pageEvents.push({
+                page: p,
+                y: r.y + 2,
+                type: 'Q_START',
+                qNum: parseInt(inlineQ[1], 10),
+                text: `Pregunta ${inlineQ[1]}`
+              });
+              const rest = (inlineQ[2] || '').trim();
+              if (rest && !SIDEBAR_NOISE_REGEX.test(rest)) {
+                pageEvents.push({ page: p, y: r.y, type: 'CONTENT', text: rest });
+              }
+            } else {
+              pageEvents.push({
+                page: p,
+                y: r.y,
+                type: 'CONTENT',
+                text: r.text
+              });
+            }
           }
 
-          // Sort top-to-bottom within the page
           pageEvents.sort((a, b) => b.y - a.y);
           events.push(...pageEvents);
 
@@ -2086,10 +2167,10 @@
         const EXACT_NOISE_REGEX = /^(?:Comenzado el.*|Estado\s+Finalizado|Finalizado.*|Tiempo empleado.*|Puntos\s+[\d,\.\/]+|Calificaci[oó]n\s+[\d,\.]+.*|Sin contestar|Correcta|Incorrecta|Parcialmente correcta|Se punt[uú]a.*|Punt[uú]a como|sobre 1,00|1,00|0,00|Seleccione una\s*:?|Actividad previa|Ir a\.\.\.|Siguiente actividad|Cap \d+ Internos.*|Avisos|Cuestionario \d+\.\d+|Resumen de alimentaci[oó]n|Reconstrucci[oó]n Eunacom agosto.*|Cap[ií]tulo \d+ - Prueba Final.*|Prueba de 70 preguntas.*|\(2\) WhatsApp|e\.doctorguevara\.cl.*|a Principal Área personal.*|Tiempo restante.*|Marcar|pregunta|Marcar pregunta)$/i;
 
         const extracted = [];
-        let state = 'IDLE'; // IDLE | STEM | OPTIONS | EXPLANATION | ANSWER_TEXT
+        let state = 'IDLE';
         let curQ = null;
         let curOptKey = null;
-        let emptyOptQueue = []; // Queue of letters whose text wrapped onto subsequent lines
+        let emptyOptQueue = [];
 
         const finalizeMoodleQuestion = () => {
           if (!curQ) return;
@@ -2144,11 +2225,10 @@
 
           const text = ev.text.trim();
           if (!text) continue;
-          if (/^\d{1,3}$/.test(text)) continue; // Standalone page number
-          if (/^[xX✓✔☐\.\-]+$/.test(text)) continue; // Standalone OCR checkmark/radio glyph
+          if (/^\d{1,3}$/.test(text)) continue;
+          if (/^[xX✓✔☐\.\-]+$/.test(text)) continue;
           if (EXACT_NOISE_REGEX.test(text)) continue;
 
-          // Detect "La respuesta correcta es: ..."
           const ansLineMatch = text.match(/^La respuesta correcta es\s*:\s*(.*)$/i);
           if (ansLineMatch) {
             curQ.answerText = (ansLineMatch[1] || '').trim();
@@ -2161,7 +2241,6 @@
             continue;
           }
 
-          // Match option marker ("a.", "Oa.", "O b.", "Oc.", etc.)
           const optMatch = text.match(/^(?:[O0o☐✓✔xX\s]{0,3})?([a-eA-E])[\.\)]\s*(.*)$/);
           const bulletOptMatch = (state === 'OPTIONS' && !optMatch) ? text.match(/^[•\-\.]\s+(.+)$/) : null;
 
@@ -2199,7 +2278,6 @@
               }
             }
 
-            // Fill queued empty option letters in FIFO order (handles "b.", "c.", "Od." stacked before their 3 texts)
             if (emptyOptQueue.length > 0) {
               const targetLetter = emptyOptQueue.shift();
               curQ.options[targetLetter] = text;
@@ -2207,7 +2285,6 @@
               continue;
             }
 
-            // After option 'e' has text, check if this line is wrapped option 'e' text or the start of the explanation
             if (curOptKey === 'e') {
               const curOptVal = (curQ.options['e'] || '').trim();
               const startsLowerOrDash = /^[a-záéíóúñ0-9,\(\-]/.test(text);
@@ -2222,7 +2299,6 @@
               continue;
             }
 
-            // Otherwise append wrapped continuation line to current option
             if (curOptKey) {
               curQ.options[curOptKey] += ' ' + text;
             }
@@ -2259,6 +2335,7 @@
             name: rep.unitName,
             category: rep.category,
             subtopic: rep.subtopic,
+            filename: rep.filename,
             questions: []
           });
         }
@@ -2505,10 +2582,17 @@
         container.innerHTML = '';
 
         let repTotal = 0, repAns = 0, repCor = 0, repEverFailed = 0, repBookmarked = 0;
+        const missingFilenames = [];
 
         for (const unit of this.unitsMap.values()) {
           if (unit.bank !== 'REPASO') continue;
           const total = unit.questions.length;
+
+          if (total === 0) {
+            missingFilenames.push(unit.filename || unit.name);
+            continue;
+          }
+
           repTotal += total;
 
           let answered = 0, correct = 0, everFailed = 0, bookmarked = 0;
@@ -2586,6 +2670,19 @@
           container.appendChild(card);
         }
 
+        const missingBanner = document.getElementById('repasosMissingBanner');
+        if (missingBanner) {
+          if (missingFilenames.length > 0) {
+            missingBanner.classList.remove('hidden');
+            document.getElementById('repasosMissingTitle').textContent =
+              `⚠️ ${missingFilenames.length} de ${REPASO_SOURCES.length} PDFs de Repaso aún no se detectan en la raíz del repositorio:`;
+            document.getElementById('repasosMissingList').textContent =
+              `Verifica que estos archivos estén subidos en la raíz de GitHub (junto a index.html) o cárgalos aquí: ${missingFilenames.join(' · ')}`;
+          } else {
+            missingBanner.classList.add('hidden');
+          }
+        }
+
         const statsEl = document.getElementById('repasosSummaryStats');
         if (statsEl) {
           const repAcc = repAns > 0 ? Math.round((repCor / repAns) * 100) : 0;
@@ -2632,7 +2729,7 @@
         this.launchQuizSession(
           chosen,
           `Repasos & Reconstrucciones — Random (${chosen.length})`,
-          'Mezcla inteligente de los 8 ensayos de repaso (sin repetir acertadas)',
+          'Mezcla inteligente de los ensayos de repaso (sin repetir acertadas)',
           0
         );
       },
@@ -3203,7 +3300,6 @@
         document.getElementById('qPageBtnText').textContent = `Ver lámina (Pág. ${q.page})`;
         document.getElementById('mobileGridBtnCount').textContent = `${this.currentIndex + 1}/${total}`;
 
-        // Update Bookmark / Save button state (Desktop & Mobile)
         const bmBtn = document.getElementById('qBookmarkBtn');
         const bmIcon = document.getElementById('qBookmarkIcon');
         const bmText = document.getElementById('qBookmarkText');
@@ -3231,7 +3327,6 @@
           }
         }
 
-        // Show badge if this question was ever failed in the past
         const everFailedBadge = document.getElementById('qEverFailedBadge');
         if (everFailedBadge) {
           if (this.isEverFailed(q.id)) {
@@ -3243,15 +3338,12 @@
           }
         }
 
-        // Proposed Answer Warning Banner
         const propWarn = document.getElementById('qProposedWarning');
         if (q.isProposed) propWarn.classList.remove('hidden');
         else propWarn.classList.add('hidden');
 
-        // Question Statement
         document.getElementById('qStatementText').textContent = q.stem;
 
-        // Inline Clinical Image Render if question has image cue
         const inlineImgBox = document.getElementById('inlineImageContainer');
         const docLookupKey = q.pdfKey || q.bank;
         if (q.hasImage) {
@@ -3266,7 +3358,6 @@
           inlineImgBox.classList.add('hidden');
         }
 
-        // Render Options (a - e)
         const optsContainer = document.getElementById('qOptionsContainer');
         optsContainer.innerHTML = '';
         const letters = Object.keys(q.options).sort();
@@ -3307,7 +3398,6 @@
           optsContainer.appendChild(btn);
         });
 
-        // Render Immediate Feedback Panel
         const fbPanel = document.getElementById('qFeedbackPanel');
         if (hasSelection) {
           fbPanel.classList.remove('hidden');
@@ -3765,7 +3855,8 @@
       async forceReindexPDFs() {
         this.closeDataModal();
         await this.saveToIndexedDB('parsedQuestions', null);
-        await this.saveToIndexedDB('parsedRepasos_v2', null);
+        await this.saveToIndexedDB('parsedRepasos_v3', null);
+        this.githubRootFiles = null;
         this.baseQuestions = [];
         this.repasoQuestions = [];
         this.questions = [];
