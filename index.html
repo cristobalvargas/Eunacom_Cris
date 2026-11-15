@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0f172a" />
-  <title>EUNACOM Pro — Simulador Clínico Interactivo (Guevara, Pediatría & Repasos)</title>
+  <title>EUNACOM Pro — Simulador Clínico Interactivo (Guevara & Pediatría)</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -57,6 +57,7 @@
     @media (min-width: 1024px) {
       .quiz-pb-safe { padding-bottom: 2.5rem; }
     }
+    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
@@ -86,7 +87,7 @@
               Cargando...
             </span>
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Bancos Guevara, Pediatría &amp; Repasos</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Bancos Guevara &amp; Pediatría</p>
         </div>
       </button>
 
@@ -137,7 +138,7 @@
     </div>
   </header>
 
-  <!-- PRIVATE BROWSING / STORAGE WARNING BANNER -->
+  <!-- PRIVATE BROWSING / STORAGE WARNING BANNER (Hidden unless storage fails) -->
   <div id="storageWarningBanner" class="hidden bg-rose-950/90 text-rose-200 border-b border-rose-800 px-4 py-2.5 text-xs text-center">
     ⚠️ <strong>Modo Privado detectado o memoria restringida:</strong> Tu navegador está bloqueando el guardado permanente local. Desactiva la Navegación Privada o conecta la sincronización con Firebase en <strong>"Nube / Datos"</strong>.
   </div>
@@ -157,9 +158,10 @@
       <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
         <div id="loaderProgressBar" class="h-full bg-emerald-500 transition-all duration-150" style="width: 0%"></div>
       </div>
+      <!-- Manual Fallback Box (shown if fetch fails on file:// protocol) -->
       <div id="manualFallbackBox" class="hidden mt-3 pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <p class="text-xs text-amber-300 leading-relaxed">
-          ⚠️ Si abriste <code class="bg-slate-800 px-1 py-0.5 rounded">index.html</code> con doble clic local (<code class="bg-slate-800 px-1 py-0.5 rounded">file://</code>), el navegador bloquea <code class="bg-slate-800 px-1 py-0.5 rounded">fetch</code> por seguridad CORS. En <strong>GitHub Pages</strong> carga automático; aquí puedes seleccionar los PDFs manualmente una sola vez (quedarán guardados en caché):
+          ⚠️ Si abriste <code class="bg-slate-800 px-1 py-0.5 rounded">index.html</code> con doble clic local (<code class="bg-slate-800 px-1 py-0.5 rounded">file://</code>), el navegador bloquea <code class="bg-slate-800 px-1 py-0.5 rounded">fetch</code> por seguridad CORS. En <strong>GitHub Pages</strong> carga automático; aquí puedes seleccionar ambos PDFs manualmente una sola vez (quedarán guardados en caché):
         </p>
         <label class="shrink-0 cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +234,7 @@
 
       <!-- Main Navigation Tabs (Portada) -->
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-        <div class="inline-flex flex-wrap p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800 gap-0.5">
+        <div class="inline-flex flex-wrap p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800">
           <button onclick="app.switchMainTab('units')" id="tabBtnUnits" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">
             📊 Unidades y Sets de 20
           </button>
@@ -242,20 +244,17 @@
           <button onclick="app.switchMainTab('random')" id="tabBtnRandom" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
             🎲 Modo Random Inteligente
           </button>
-          <button onclick="app.switchMainTab('repasos')" id="tabBtnRepasos" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-            📚 Repasos <span id="tabRepasosCountPill" class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-300">0</span>
-          </button>
         </div>
 
         <!-- Bank Filter Pills -->
         <div id="unitFilterControls" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div id="bankFilterPillsBox" class="inline-flex rounded-xl bg-slate-100 dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800">
+          <div class="inline-flex rounded-xl bg-slate-100 dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800">
             <button onclick="app.setBankFilter('ALL')" id="filterBankALL" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white">Todos</button>
             <button onclick="app.setBankFilter('PEDIATRIA')" id="filterBankPEDIATRIA" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Pediatría (14)</button>
             <button onclick="app.setBankFilter('GUEVARA')" id="filterBankGUEVARA" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Guevara (19)</button>
           </div>
           <div class="relative flex-1 sm:w-56">
-            <input type="text" id="unitSearchInput" oninput="app.renderUnitsGrid(); app.renderSavedByChapterTab(); app.renderRepasosTab();" placeholder="Buscar unidad, prueba o tema..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500" />
+            <input type="text" id="unitSearchInput" oninput="app.renderUnitsGrid(); app.renderSavedByChapterTab();" placeholder="Buscar unidad o tema..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500" />
             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -265,7 +264,9 @@
 
       <!-- TAB 1 CONTENT: PROGRESO POR UNIDADES -->
       <div id="tabContentUnits" class="space-y-4">
-        <div id="unitsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="unitsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated unit cards -->
+        </div>
       </div>
 
       <!-- TAB 2 CONTENT: PREGUNTAS GUARDADAS POR CAPÍTULO -->
@@ -276,7 +277,7 @@
               <span>⭐ Tus Preguntas Guardadas por Capítulo</span>
             </h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Todas las preguntas que marcaste con el botón <strong>⭐ Guardar</strong> durante tus ensayos o repasos, organizadas por capítulo (independiente de si estaban buenas o malas).
+              Todas las preguntas que marcaste con el botón <strong>⭐ Guardar</strong> durante tus ensayos, organizadas por especialidad (independiente de si estaban buenas o malas).
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
@@ -286,7 +287,9 @@
           </div>
         </div>
 
-        <div id="savedChaptersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="savedChaptersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated saved chapter cards -->
+        </div>
       </div>
 
       <!-- TAB 3 CONTENT: MODO RANDOM INTELIGENTE (SIN REPETIR) -->
@@ -308,15 +311,14 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">1. Banco de Origen</label>
               <select id="randomBankSelect" onchange="app.populateRandomUnitsDropdown()" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
-                <option value="ALL">Todos los Bancos (Pediatría + Guevara + Repasos)</option>
+                <option value="ALL">Ambos Bancos (Pediatría + Guevara)</option>
                 <option value="PEDIATRIA">Solo Banco EUNACOM Pediatría</option>
                 <option value="GUEVARA">Solo Banco EUNACOM Guevara</option>
-                <option value="REPASO">Solo Repasos y Reconstrucciones (8 pruebas)</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">2. Especialidad / Unidad / Prueba</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">2. Especialidad / Unidad</label>
               <select id="randomUnitSelect" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
                 <option value="ALL">Todas las unidades del banco seleccionado</option>
               </select>
@@ -355,72 +357,17 @@
           </button>
         </div>
       </div>
-
-      <!-- TAB 4 CONTENT: REPASOS Y RECONSTRUCCIONES EUNACOM -->
-      <div id="tabContentRepasos" class="hidden space-y-4">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-teal-500/30 p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
-          <div class="space-y-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-teal-500/15 text-teal-600 dark:text-teal-300 border border-teal-500/30">
-                📚 REPASOS &amp; RECONSTRUCCIONES
-              </span>
-              <span id="repasosSummaryStats" class="text-xs font-bold text-slate-600 dark:text-slate-300">
-                0 / 0 preg · 0% acierto
-              </span>
-            </div>
-            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
-              Pruebas Finales de Módulo y Reconstrucciones Oficiales Dr. Guevara
-            </h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400">
-              Rinde cada prueba completa (70 o 90 preguntas), divídela en sets de 20 o practica tus falladas y guardadas ⭐ sincronizadas en la nube.
-            </p>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <button onclick="app.startRepasosRandomQuiz(20)" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-sm transition">
-              🎲 20 Random de Repasos
-            </button>
-            <button onclick="app.startRepasosEverFailedQuiz()" id="repasosEverFailedBtn" class="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition">
-              📌 Falladas Repasos (0)
-            </button>
-            <button onclick="app.startRepasosBookmarkedQuiz()" id="repasosBookmarkedBtn" class="px-3.5 py-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 text-xs font-bold transition">
-              ⭐ Guardadas Repasos (0)
-            </button>
-          </div>
-        </div>
-
-        <!-- Diagnostic / Missing PDFs Helper Banner (only shown if some Repaso PDFs haven't been loaded yet) -->
-        <div id="repasosMissingBanner" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="space-y-1 text-xs">
-            <p class="font-bold text-amber-700 dark:text-amber-300" id="repasosMissingTitle">
-              ⚠️ Faltan PDFs de Repaso por detectar en la raíz de GitHub:
-            </p>
-            <p class="text-slate-600 dark:text-slate-400 leading-relaxed" id="repasosMissingList"></p>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button onclick="app.retryFetchRepasosOnly()" class="px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition">
-              🔄 Reintentar GitHub
-            </button>
-            <label class="cursor-pointer px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition">
-              📂 Cargar PDFs
-              <input type="file" accept=".pdf" multiple class="hidden" onchange="app.handleManualFiles(this.files)" />
-            </label>
-          </div>
-        </div>
-
-        <div id="repasosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      </div>
     </section>
 
     <!-- ==================== VIEW 2: UNIT SETS OF 20 MODAL / DRAWER ==================== -->
     <section id="setsView" class="hidden space-y-5 animate-fade">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <button id="setsViewBackBtn" onclick="app.returnFromSetsView()" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline mb-1">
+          <button onclick="app.showDashboard()" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline mb-1">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span id="setsViewBackLabel">Volver a Progreso por Unidades</span>
+            Volver a Progreso por Unidades
           </button>
           <div class="flex flex-wrap items-center gap-2">
             <span id="setsViewBankBadge" class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/10 text-sky-400">BANCO</span>
@@ -430,9 +377,6 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <button id="setsViewFullExamBtn" class="hidden px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-sm transition">
-            📝 Rendir Prueba Completa
-          </button>
           <button id="setsViewRandomBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition">
             🎲 20 Random (Sin repetir acertadas)
           </button>
@@ -449,7 +393,9 @@
       </div>
 
       <!-- Grid of 20-question blocks -->
-      <div id="setsBlocksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+      <div id="setsBlocksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <!-- Populated dynamically -->
+      </div>
     </section>
 
     <!-- ==================== VIEW 3: INTERACTIVE PRACTICE / QUIZ INTERFACE ==================== -->
@@ -478,10 +424,10 @@
         </div>
       </div>
 
-      <!-- Main 2-Column Quiz Layout -->
+      <!-- Main 2-Column Quiz Layout on Desktop, Single Column + Swipe on Mobile -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-        <!-- Left / Center Question Card -->
+        <!-- Left / Center Question Card (8 cols on lg) -->
         <div id="questionTouchArea" class="lg:col-span-8 space-y-4">
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm space-y-5">
 
@@ -504,7 +450,7 @@
 
               <div class="flex items-center gap-1.5">
                 <!-- Bookmark / Save Question Button -->
-                <button onclick="app.toggleBookmarkCurrentQuestion()" id="qBookmarkBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition" title="Guardar/Desmarcar pregunta (Atajo: tecla G)">
+                <button onclick="app.toggleBookmarkCurrentQuestion()" id="qBookmarkBtn" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border transition" title="Guardar/Desmarcar pregunta para revisitar por capítulo (Atajo: tecla G)">
                   <span id="qBookmarkIcon">☆</span>
                   <span id="qBookmarkText">Guardar</span>
                 </button>
@@ -520,7 +466,7 @@
               </div>
             </div>
 
-            <!-- Yellow Proposed Answer Banner -->
+            <!-- Yellow Proposed Answer Banner (if question is proposed/unverified in original) -->
             <div id="qProposedWarning" class="hidden p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5">
               <span class="text-base leading-none">⚠️</span>
               <div>
@@ -534,7 +480,7 @@
               Enunciado de la pregunta...
             </div>
 
-            <!-- Inline Clinical Image Canvas -->
+            <!-- Inline Clinical Image Canvas (Auto-displayed when ECG / Rx / Image cue is detected) -->
             <div id="inlineImageContainer" class="hidden space-y-2 pt-1">
               <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-800/90 px-3 py-1.5 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
                 <span class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5">
@@ -550,7 +496,9 @@
             </div>
 
             <!-- Options List (a - e) -->
-            <div id="qOptionsContainer" class="space-y-2.5 pt-1"></div>
+            <div id="qOptionsContainer" class="space-y-2.5 pt-1">
+              <!-- Populated dynamically -->
+            </div>
 
             <!-- Immediate Feedback & Explanation Panel -->
             <div id="qFeedbackPanel" class="hidden rounded-2xl border p-4 sm:p-5 space-y-3 transition-all">
@@ -591,14 +539,16 @@
           </div>
         </div>
 
-        <!-- Right Sidebar on Desktop: Question Navigator 1..N -->
+        <!-- Right Sidebar on Desktop: Question Navigator 1..20 (4 cols on lg) -->
         <div class="hidden lg:block lg:col-span-4 sticky top-20 space-y-4">
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Navegador del Set</h3>
               <span id="navProgressTextDesktop" class="text-xs font-semibold text-slate-600 dark:text-slate-300">0/20</span>
             </div>
-            <div id="questionGridDesktop" class="grid grid-cols-5 gap-2 max-h-[60vh] overflow-y-auto pr-1"></div>
+            <div id="questionGridDesktop" class="grid grid-cols-5 gap-2">
+              <!-- 1..20 buttons -->
+            </div>
             <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
               <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Historial fallo</span>
               <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-violet-400"></span> Guardada ⭐</span>
@@ -608,7 +558,7 @@
 
       </div>
 
-      <!-- MOBILE FIXED BOTTOM ACTION BAR -->
+      <!-- MOBILE FIXED BOTTOM ACTION BAR (Thumb Ergonomics) -->
       <div class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 pt-2.5 safe-bottom">
         <div class="max-w-lg mx-auto grid grid-cols-5 gap-1.5">
           <button onclick="app.prevQuestion()" class="min-h-[46px] rounded-xl bg-slate-100 dark:bg-slate-800 active:scale-95 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center">
@@ -630,7 +580,7 @@
         </div>
       </div>
 
-      <!-- MOBILE BOTTOM SHEET FOR QUESTION GRID -->
+      <!-- MOBILE BOTTOM SHEET FOR QUESTION GRID (1..20) -->
       <div id="mobileNavSheet" class="fixed inset-0 z-40 hidden">
         <div onclick="app.toggleMobileNavSheet(false)" class="absolute inset-0 bg-black/60 backdrop-blur-xs"></div>
         <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl p-5 safe-bottom border-t border-slate-200 dark:border-slate-800 max-h-[75vh] overflow-y-auto">
@@ -803,11 +753,22 @@
 
   <!-- ==================== APPLICATION JAVASCRIPT ENGINE ==================== -->
   <script>
+    // Configure PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    const DEFAULT_FIREBASE_URL = 'https://euncompro-default-rtdb.firebaseio.com/';
+    /**
+     * OPCIONAL: Si pegas tu URL de Firebase Realtime Database aquí abajo antes de subir el index.html a GitHub,
+     * todos tus dispositivos (iPhone, iPad, Mac) se conectarán automáticamente sin tener que escribirla en pantalla.
+     * Ejemplo: const DEFAULT_FIREBASE_URL = 'https://eunacom-pro-default-rtdb.firebaseio.com/';
+     */
+    const DEFAULT_FIREBASE_URL = 'https://euncompro-default-rtdb.firebaseio.com/'; // <-- PEGA AQUÍ TU URL DE FIREBASE SI QUIERES QUE CARGUE AUTOMÁTICO
     const DEFAULT_USER_SYNC_KEY = 'cristobal_eunacom';
 
+    /**
+     * Exact Canonical Chapter / Page Maps calibrated to:
+     * 1) Banco_EUNACOM_Guevara.pdf (701 pages, 19 chapters, questions start on page 10)
+     * 2) Banco_EUNACOM_Pediatria.pdf (138 pages, 14 chapters, questions start on page 1)
+     */
     const GUEVARA_CHAPTERS = [
       { name: "Cardiología", start: 10, end: 56 },
       { name: "Respiratorio", start: 57, end: 90 },
@@ -847,66 +808,7 @@
       { name: "Intoxicaciones y misceláneos", start: 137, end: 140 }
     ];
 
-    const REPASO_SOURCES = [
-      {
-        key: 'REPASO_M1_P1',
-        filename: '1.-Repaso módulo 1 prueba 70 preg N° 1 SOLUCIÓN.pdf',
-        unitName: 'Repaso Módulo 1 — Prueba Final 1',
-        category: 'MÓDULO 1',
-        subtopic: 'Medicina Interna (70 preg)'
-      },
-      {
-        key: 'REPASO_C2_P1',
-        filename: '2.-Capítulo 2 - Prueba Final 1_ Revisión del intento.pdf',
-        unitName: 'Capítulo 2 — Prueba Final 1',
-        category: 'CAPÍTULO 2',
-        subtopic: 'Especialidades, Cirugía y Salud Pública (70 preg)'
-      },
-      {
-        key: 'REPASO_C3_P1',
-        filename: 'Capítulo 3 - Prueba Final 1_ Revisión del intento _ Dr. Guevara.pdf',
-        unitName: 'Capítulo 3 — Prueba Final 1',
-        category: 'CAPÍTULO 3',
-        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
-      },
-      {
-        key: 'REPASO_C3_P2',
-        filename: 'Capítulo 3 - Prueba Final 2_ Revisión del intento _ Dr. Guevara.pdf',
-        unitName: 'Capítulo 3 — Prueba Final 2',
-        category: 'CAPÍTULO 3',
-        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
-      },
-      {
-        key: 'REPASO_C3_P3',
-        filename: 'Capítulo 3 - Prueba Final 3_ Revisión del intento _ Dr. Guevara.pdf',
-        unitName: 'Capítulo 3 — Prueba Final 3',
-        category: 'CAPÍTULO 3',
-        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
-      },
-      {
-        key: 'REPASO_C3_P4',
-        filename: 'Capítulo 3 - Prueba Final 4_ Revisión del intento _ Dr. Guevara.pdf',
-        unitName: 'Capítulo 3 — Prueba Final 4',
-        category: 'CAPÍTULO 3',
-        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
-      },
-      {
-        key: 'REPASO_REC_2021_1',
-        filename: '3.-Reconstrucción Eunacom agosto 2021 (Parte I)_ Revisión del intento _ Dr. Guevara.pdf',
-        unitName: 'Reconstrucción EUNACOM Ago 2021 (Parte I)',
-        category: 'RECONSTRUCCIÓN',
-        subtopic: 'Ensayo Oficial Reconstruido (90 preg)'
-      },
-      {
-        key: 'REPASO_REC_2021_2',
-        filename: '3.-Reconstrucción Eunacom agosto 2021 (Parte II)_ Revisión del intento _ Dr. Guevara.pdf',
-        unitName: 'Reconstrucción EUNACOM Ago 2021 (Parte II)',
-        category: 'RECONSTRUCCIÓN',
-        subtopic: 'Ensayo Oficial Reconstruido (90 preg)'
-      }
-    ];
-
-    const IMAGE_CUE_REGEX = /(se muestra a continuaci[oó]n|se muestra m[aá]s abajo|muestra lo siguiente|siguiente electrocardiograma|electrocardiograma es el siguiente|siguiente trazado|siguiente imagen|siguiente fotograf[ií]a|siguiente curva de crecimiento|mostrando lo siguiente|\(ver imagen|\(fuente\s*:|cardioteca\.com|cardiomedica\.es|researchgate\.net|blogspot\.com|radiopaedia|cardioparamap)/i;
+    const IMAGE_CUE_REGEX = /(se muestra a continuaci[oó]n|siguiente electrocardiograma|siguiente trazado|siguiente imagen|mostrando lo siguiente|cardioteca\.com|cardiomedica\.es|researchgate\.net|blogspot\.com)/i;
 
     const STORAGE_KEY_PROGRESS = 'eunacom_pro_progress_v1';
     const STORAGE_KEY_THEME = 'eunacom_pro_theme_v1';
@@ -915,15 +817,12 @@
     const IDB_STORE = 'questionBankStore';
 
     const app = {
-      baseQuestions: [],
-      repasoQuestions: [],
       questions: [],
-      unitsMap: new Map(),
+      unitsMap: new Map(), // unitId -> { id, bank, name, questions: [] }
       pdfDocs: { PEDIATRIA: null, GUEVARA: null },
-      githubRootFiles: null, // Cached list of files in GitHub repo root
       progress: {
-        answers: {},
-        deleted: {},
+        answers: {},  // qId -> { selected: 'a'|null, correct: true|false, everFailed: bool, failCount: num, bookmarked: bool, bookmarkUpdatedAt: num, timestamp: num }
+        deleted: {},  // qId -> timestamp (tombstones so intentional retries sync cleanly across devices)
         updatedAt: 0
       },
       cloudConfig: {
@@ -935,18 +834,20 @@
 
       bankFilter: 'ALL',
       randomCount: 20,
-      lastMainTab: 'units',
 
+      // Active Quiz State
       activeUnitId: null,
       activeQuizTitle: '',
       activeQuizSubtitle: '',
       activeQuestions: [],
       currentIndex: 0,
 
+      // Timer State
       timerSeconds: 0,
       timerInterval: null,
       timerPaused: false,
 
+      // Modal PDF Viewer State
       modalPdfBank: null,
       modalPdfPage: 1,
       modalScale: 1.5,
@@ -1033,48 +934,40 @@
         this.setupLifecycleSyncListeners();
         this.startTimerLoop();
 
+        // Pull latest progress from Firebase Cloud on startup if configured
         if (this.isCloudConfigured()) {
           this.syncWithCloud(false);
         } else {
           this.updateCloudStatusUI('local', 'Solo Local');
         }
 
-        const cachedBase = await this.getFromIndexedDB('parsedQuestions');
-        const cachedRepasos = await this.getFromIndexedDB('parsedRepasos_v3');
-
-        const hasBase = Array.isArray(cachedBase) && cachedBase.length > 100;
-        const loadedKeys = new Set(Array.isArray(cachedRepasos) ? cachedRepasos.map(q => q.pdfKey) : []);
-        const hasAllRepasos = Array.isArray(cachedRepasos) && loadedKeys.size >= REPASO_SOURCES.length;
-
-        if (hasBase) {
-          this.baseQuestions = cachedBase;
-        }
-        if (Array.isArray(cachedRepasos) && cachedRepasos.length > 0) {
-          this.repasoQuestions = cachedRepasos;
-        }
-
-        if (hasBase && hasAllRepasos) {
-          this.questions = [...this.baseQuestions, ...this.repasoQuestions];
+        // 1. Check IndexedDB cached parsed questions first for instant startup
+        const cached = await this.getFromIndexedDB('parsedQuestions');
+        if (cached && Array.isArray(cached) && cached.length > 100) {
+          this.questions = cached;
           this.buildUnitsIndex();
-          this.updateLoader(100, `Bancos y Repasos cargados desde caché (${this.questions.length} preguntas).`);
+          this.updateLoader(100, `Banco cargado instantáneamente desde caché (${this.questions.length} preguntas).`);
           setTimeout(() => {
             document.getElementById('loaderBanner').classList.add('hidden');
-          }, 800);
+          }, 900);
           this.updateBadge(`${this.questions.length} preg listas`);
           this.renderDashboard();
+          // Load PDF binaries in background for on-demand clinical image rendering
           this.loadPdfBinariesSilently();
           return;
         }
 
-        await this.autoFetchAndParseMissingPDFs(hasBase, hasAllRepasos);
+        // 2. Otherwise fetch and parse both PDFs automatically from repository root
+        await this.autoFetchAndParsePDFs();
       },
 
-      /* ==================== PERSISTENT STORAGE & DUAL BACKUP ==================== */
+      /* ==================== PERSISTENT STORAGE & DUAL BACKUP (LOCALSTORAGE + INDEXEDDB) ==================== */
       async requestPersistentStorage() {
         try {
           if (navigator.storage && navigator.storage.persist) {
             await navigator.storage.persist();
           }
+          // Test if localStorage is writable (detects strict iOS Private Mode blocks)
           const testKey = '__eunacom_test__';
           localStorage.setItem(testKey, '1');
           localStorage.removeItem(testKey);
@@ -1110,6 +1003,7 @@
           console.error('Error reading localStorage progress:', e);
         }
 
+        // Fallback/Merge with IndexedDB mirror in case iOS cleared localStorage
         const idbData = await this.getFromIndexedDB('progressMirror');
         if (localData && idbData) {
           this.progress = this.mergeProgressObjects(localData, idbData);
@@ -1138,14 +1032,16 @@
           console.error('Error saving progress to localStorage:', e);
         }
 
+        // Mirror to IndexedDB for extra durability on iOS/iPadOS
         this.saveToIndexedDB('progressMirror', this.progress);
 
+        // Schedule non-blocking Cloud Push
         if (triggerCloud && this.isCloudConfigured()) {
           this.scheduleCloudSync();
         }
       },
 
-      /* ==================== FIREBASE REALTIME CLOUD SYNC ENGINE ==================== */
+      /* ==================== FIREBASE REALTIME CLOUD SYNC ENGINE (INTACTO) ==================== */
       async loadCloudConfig() {
         let saved = null;
         try {
@@ -1173,6 +1069,7 @@
       getFirebaseEndpointUrl() {
         if (!this.isCloudConfigured()) return null;
         let base = this.cloudConfig.dbUrl.trim().replace(/\/+$/, '');
+        // Remove accidental .json if user pasted full path
         base = base.replace(/\/eunacom_sync\/.*$/, '').replace(/\.json$/, '');
         const cleanUser = (this.cloudConfig.userKey || DEFAULT_USER_SYNC_KEY).replace(/[^a-zA-Z0-9_-]/g, '_');
         return `${base}/eunacom_sync/${cleanUser}.json`;
@@ -1219,6 +1116,11 @@
         }
       },
 
+      /**
+       * Smart Question-Level Timestamp Merge:
+       * Combines answers from Mobile and Tablet so neither device overwrites newer answers from the other,
+       * while preserving `everFailed`, `failCount`, and `bookmarked` status across devices.
+       */
       mergeProgressObjects(progA, progB) {
         const ansA = (progA && progA.answers) ? progA.answers : {};
         const ansB = (progB && progB.answers) ? progB.answers : {};
@@ -1244,6 +1146,7 @@
           const latestAnsTs = Math.max(tsA, tsB);
           const delTs = mergedDeleted[qId] || 0;
 
+          // Preserve historical failure status across both records
           const wasEverFailed = Boolean(
             (a && (a.everFailed || (a.selected && a.correct === false))) ||
             (b && (b.everFailed || (b.selected && b.correct === false)))
@@ -1253,6 +1156,7 @@
             b ? (b.failCount || ((b.selected && b.correct === false) ? 1 : 0)) : 0
           );
 
+          // Resolve bookmark status using most recent bookmark action or latest record
           const bmTsA = a ? (a.bookmarkUpdatedAt || (a.bookmarked ? tsA : 0)) : 0;
           const bmTsB = b ? (b.bookmarkUpdatedAt || (b.bookmarked ? tsB : 0)) : 0;
           let isBookmarked = false;
@@ -1313,16 +1217,20 @@
         this.updateCloudStatusUI('syncing');
 
         try {
+          // 1. Fetch remote progress from Firebase
           const getRes = await fetch(endpoint, { cache: 'no-store' });
           if (!getRes.ok) throw new Error(`HTTP ${getRes.status}`);
           const remoteData = await getRes.json();
 
+          // 2. Smart merge local & remote
           if (remoteData && (remoteData.answers || remoteData.deleted)) {
             this.progress = this.mergeProgressObjects(this.progress, remoteData);
           }
 
+          // 3. Save merged state locally (without re-triggering loop)
           this.saveProgressToStorage(false);
 
+          // 4. Push merged state back to Firebase
           const putRes = await fetch(endpoint, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -1332,6 +1240,7 @@
 
           this.updateCloudStatusUI('synced', '☁️ Nube OK');
 
+          // Refresh active view so newly synced answers reflect immediately
           if (!document.getElementById('dashboardView').classList.contains('hidden')) {
             this.renderDashboard();
           } else if (!document.getElementById('setsView').classList.contains('hidden') && this.activeUnitId) {
@@ -1402,6 +1311,7 @@
       },
 
       setupLifecycleSyncListeners() {
+        // Automatically pull/push whenever the user switches between iPhone and iPad or returns to Safari
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'visible' && this.isCloudConfigured()) {
             this.syncWithCloud(false);
@@ -1419,6 +1329,11 @@
         });
       },
 
+      /**
+       * Reinicia la respuesta actual de la pregunta para poder volver a contestarla en un ensayo,
+       * pero CONSERVA `everFailed`, `failCount` y `bookmarked` dentro de `this.progress.answers[qId]`
+       * para que nunca se pierdan del historial ni de las preguntas guardadas ⭐.
+       */
       markQuestionResetForRetry(qId) {
         const prev = this.progress.answers[qId];
         const hadFailed = Boolean(prev && (prev.everFailed === true || (prev.selected && prev.correct === false)));
@@ -1490,7 +1405,7 @@
         }
       },
 
-      /* ==================== SMART GITHUB / UNICODE FILE RESOLVER & LOADER ==================== */
+      /* ==================== PDF.JS FETCH & PARSER ENGINE ==================== */
       updateLoader(pct, text) {
         const bar = document.getElementById('loaderProgressBar');
         const pctEl = document.getElementById('loaderPercentText');
@@ -1508,198 +1423,61 @@
         }
       },
 
-      /**
-       * Queries GitHub Contents API if running on *.github.io so we discover exact byte-for-byte
-       * filenames (handling macOS NFD vs Windows/Linux NFC accents, spaces, underscores, or °).
-       */
-      async discoverGithubRepoFiles() {
-        if (this.githubRootFiles) return this.githubRootFiles;
-        try {
-          const host = window.location.hostname;
-          if (!host.endsWith('.github.io')) return [];
-          const owner = host.split('.')[0];
-          const pathParts = window.location.pathname.split('/').filter(Boolean);
-          const repo = pathParts.length > 0 ? pathParts[0] : `${owner}.github.io`;
-          const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/`;
-          const res = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github.v3+json' } });
-          if (!res.ok) return [];
-          const list = await res.json();
-          if (Array.isArray(list)) {
-            this.githubRootFiles = list.filter(item => item.type === 'file' && item.name.toLowerCase().endsWith('.pdf'));
-            return this.githubRootFiles;
-          }
-        } catch (e) {}
-        return [];
-      },
-
-      normalizeFilenameKey(str) {
-        return (str || '')
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '');
-      },
-
-      async fetchPdfBufferSmart(filename) {
-        // 1. Try direct relative fetch with NFC and NFD Unicode forms
-        const candidates = new Set([
-          `./${encodeURIComponent(filename.normalize('NFC'))}`,
-          `./${encodeURIComponent(filename.normalize('NFD'))}`
-        ]);
-
-        // 2. Also check GitHub API file listing for an exact or accent-insensitive match
-        const ghFiles = await this.discoverGithubRepoFiles();
-        if (ghFiles && ghFiles.length > 0) {
-          const targetKey = this.normalizeFilenameKey(filename);
-          const matched = ghFiles.find(f =>
-            f.name === filename ||
-            this.normalizeFilenameKey(f.name) === targetKey
-          );
-          if (matched) {
-            candidates.add(`./${encodeURIComponent(matched.name)}`);
-            if (matched.download_url) candidates.add(matched.download_url);
-          }
-        }
-
-        for (const url of candidates) {
-          try {
-            const res = await fetch(url);
-            if (res.ok) {
-              return await res.arrayBuffer();
-            }
-          } catch (e) {}
-        }
-        return null;
-      },
-
-      async ensurePdfDocLoaded(docKey) {
-        if (this.pdfDocs[docKey]) return this.pdfDocs[docKey];
-
-        let buf = await this.getFromIndexedDB(`pdfBuffer_${docKey}`);
-        if (!buf) {
-          let filename = null;
-          if (docKey === 'PEDIATRIA') filename = 'Banco_EUNACOM_Pediatria.pdf';
-          else if (docKey === 'GUEVARA') filename = 'Banco_EUNACOM_Guevara.pdf';
-          else {
-            const repMeta = REPASO_SOURCES.find(r => r.key === docKey);
-            if (repMeta) filename = repMeta.filename;
-          }
-          if (filename) {
-            buf = await this.fetchPdfBufferSmart(filename);
-            if (buf) {
-              await this.saveToIndexedDB(`pdfBuffer_${docKey}`, buf);
-            }
-          }
-        }
-
-        if (buf) {
-          try {
-            this.pdfDocs[docKey] = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
-            return this.pdfDocs[docKey];
-          } catch (e) {}
-        }
-        return null;
-      },
-
       async loadPdfBinariesSilently() {
         try {
-          await Promise.all([
-            this.ensurePdfDocLoaded('PEDIATRIA'),
-            this.ensurePdfDocLoaded('GUEVARA'),
-            ...REPASO_SOURCES.map(r => this.ensurePdfDocLoaded(r.key))
+          const [pedBuf, guevBuf] = await Promise.all([
+            this.getFromIndexedDB('pdfBuffer_PEDIATRIA'),
+            this.getFromIndexedDB('pdfBuffer_GUEVARA')
           ]);
-        } catch (e) {}
+          if (pedBuf) {
+            this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: pedBuf.slice(0) }).promise;
+          } else {
+            const r1 = await fetch('./Banco_EUNACOM_Pediatria.pdf');
+            if (r1.ok) {
+              const b1 = await r1.arrayBuffer();
+              await this.saveToIndexedDB('pdfBuffer_PEDIATRIA', b1);
+              this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: b1.slice(0) }).promise;
+            }
+          }
+          if (guevBuf) {
+            this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: guevBuf.slice(0) }).promise;
+          } else {
+            const r2 = await fetch('./Banco_EUNACOM_Guevara.pdf');
+            if (r2.ok) {
+              const b2 = await r2.arrayBuffer();
+              await this.saveToIndexedDB('pdfBuffer_GUEVARA', b2);
+              this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: b2.slice(0) }).promise;
+            }
+          }
+        } catch (e) {
+          // Silent background load
+        }
       },
 
-      async autoFetchAndParseMissingPDFs(hasBase, hasAllRepasos) {
-        let fetchedAny = false;
+      async autoFetchAndParsePDFs() {
+        try {
+          this.updateLoader(2, 'Descargando Banco_EUNACOM_Pediatria.pdf y Banco_EUNACOM_Guevara.pdf...');
+          const [resPed, resGuev] = await Promise.all([
+            fetch('./Banco_EUNACOM_Pediatria.pdf'),
+            fetch('./Banco_EUNACOM_Guevara.pdf')
+          ]);
 
-        if (!hasBase) {
-          try {
-            this.updateLoader(2, 'Descargando Banco_EUNACOM_Pediatria.pdf y Banco_EUNACOM_Guevara.pdf...');
-            const [bufPed, bufGuev] = await Promise.all([
-              this.fetchPdfBufferSmart('Banco_EUNACOM_Pediatria.pdf'),
-              this.fetchPdfBufferSmart('Banco_EUNACOM_Guevara.pdf')
-            ]);
-
-            if (bufPed && bufGuev) {
-              await this.processBasePdfBuffers(bufPed, bufGuev, 0, 50);
-              fetchedAny = true;
-            }
-          } catch (err) {
-            console.warn('Fetch automático de bancos base no disponible:', err);
-          }
-        }
-
-        if (!hasAllRepasos) {
-          const existingByKey = new Map();
-          for (const q of this.repasoQuestions) {
-            if (!existingByKey.has(q.pdfKey)) existingByKey.set(q.pdfKey, []);
-            existingByKey.get(q.pdfKey).push(q);
+          if (!resPed.ok || !resGuev.ok) {
+            throw new Error('No se pudieron obtener los PDFs vía fetch.');
           }
 
-          const missingSources = REPASO_SOURCES.filter(s => !existingByKey.has(s.key) || existingByKey.get(s.key).length === 0);
-          const startPct = hasBase ? 5 : 50;
-          const endPct = 98;
-          const step = (endPct - startPct) / Math.max(1, missingSources.length);
+          const [bufPed, bufGuev] = await Promise.all([
+            resPed.arrayBuffer(),
+            resGuev.arrayBuffer()
+          ]);
 
-          for (let idx = 0; idx < missingSources.length; idx++) {
-            const src = missingSources[idx];
-            const curPct = startPct + idx * step;
-            this.updateLoader(curPct, `Cargando Repaso (${idx + 1}/${missingSources.length}): ${src.unitName}...`);
-
-            try {
-              const buf = await this.fetchPdfBufferSmart(src.filename);
-              if (!buf) continue;
-              await this.saveToIndexedDB(`pdfBuffer_${src.key}`, buf);
-              this.pdfDocs[src.key] = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
-
-              const qs = await this.extractMoodleRepasoQuestions(this.pdfDocs[src.key], src);
-              if (qs.length > 0) {
-                existingByKey.set(src.key, qs);
-                fetchedAny = true;
-              }
-            } catch (e) {
-              console.warn(`No se pudo cargar ${src.filename}:`, e);
-            }
-          }
-
-          const mergedRepasos = [];
-          for (const src of REPASO_SOURCES) {
-            if (existingByKey.has(src.key)) {
-              mergedRepasos.push(...existingByKey.get(src.key));
-            }
-          }
-
-          if (mergedRepasos.length > 0) {
-            this.repasoQuestions = mergedRepasos;
-            await this.saveToIndexedDB('parsedRepasos_v3', this.repasoQuestions);
-          }
-        }
-
-        this.questions = [...this.baseQuestions, ...this.repasoQuestions];
-
-        if (this.questions.length > 0) {
-          this.buildUnitsIndex();
-          this.updateLoader(100, `¡Listo! ${this.questions.length} preguntas indexadas correctamente.`);
-          this.updateBadge(`${this.questions.length} preg listas`);
-          setTimeout(() => {
-            document.getElementById('loaderBanner').classList.add('hidden');
-          }, 800);
-          this.renderDashboard();
-          if (hasBase) this.loadPdfBinariesSilently();
-        } else if (!fetchedAny) {
+          await this.processBothPdfBuffers(bufPed, bufGuev);
+        } catch (err) {
+          console.warn('Fetch automático bloqueado o archivos no encontrados en ruta relativa:', err);
           document.getElementById('loaderSpinner').classList.add('hidden');
           this.updateLoader(0, 'Esperando selección de archivos PDF (Modo local sin servidor)...');
           document.getElementById('manualFallbackBox').classList.remove('hidden');
         }
-      },
-
-      async retryFetchRepasosOnly() {
-        document.getElementById('loaderBanner').classList.remove('hidden');
-        document.getElementById('loaderSpinner').classList.remove('hidden');
-        this.githubRootFiles = null;
-        await this.autoFetchAndParseMissingPDFs(this.baseQuestions.length > 0, false);
       },
 
       async handleManualFiles(fileList) {
@@ -1708,81 +1486,28 @@
         document.getElementById('loaderSpinner').classList.remove('hidden');
         document.getElementById('manualFallbackBox').classList.add('hidden');
 
-        let bufPed = null;
-        let bufGuev = null;
-        const repasoFiles = [];
+        let bufPed = await this.getFromIndexedDB('pdfBuffer_PEDIATRIA');
+        let bufGuev = await this.getFromIndexedDB('pdfBuffer_GUEVARA');
 
         for (const file of fileList) {
           const lower = file.name.toLowerCase();
-          const normName = this.normalizeFilenameKey(file.name);
           const buf = await file.arrayBuffer();
-
-          if (lower.startsWith('1.1.-') || (normName.includes('repasomodulo1') && !normName.includes('solucion'))) {
-            continue;
-          }
-
-          const matchedRepaso = REPASO_SOURCES.find(r =>
-            this.normalizeFilenameKey(r.filename) === normName ||
-            normName.includes(this.normalizeFilenameKey(r.unitName).slice(0, 18)) ||
-            (normName.includes('reconstruccion') && normName.includes('partei') && !normName.includes('parteii') && r.key === 'REPASO_REC_2021_1') ||
-            (normName.includes('reconstruccion') && normName.includes('parteii') && r.key === 'REPASO_REC_2021_2') ||
-            (normName.includes('capitulo2') && r.key === 'REPASO_C2_P1') ||
-            (normName.includes('final1') && normName.includes('3') && r.key === 'REPASO_C3_P1') ||
-            (normName.includes('final2') && normName.includes('3') && r.key === 'REPASO_C3_P2') ||
-            (normName.includes('final3') && normName.includes('3') && r.key === 'REPASO_C3_P3') ||
-            (normName.includes('final4') && normName.includes('3') && r.key === 'REPASO_C3_P4') ||
-            (normName.includes('repaso') && normName.includes('solucion') && r.key === 'REPASO_M1_P1')
-          );
-
-          if (matchedRepaso) {
-            repasoFiles.push({ src: matchedRepaso, buf });
-          } else if (normName.includes('pediatria')) {
+          if (lower.includes('pediatria') || lower.includes('pediatría')) {
             bufPed = buf;
-          } else if (normName.includes('guevara')) {
+          } else if (lower.includes('guevara')) {
+            bufGuev = buf;
+          } else if (!bufPed) {
+            bufPed = buf;
+          } else {
             bufGuev = buf;
           }
         }
 
-        if (bufPed || bufGuev) {
-          await this.processBasePdfBuffers(bufPed, bufGuev, 0, 50);
-        }
-
-        if (repasoFiles.length > 0) {
-          const existingMap = new Map();
-          for (const q of this.repasoQuestions) {
-            existingMap.set(q.id, q);
-          }
-
-          for (let i = 0; i < repasoFiles.length; i++) {
-            const { src, buf } = repasoFiles[i];
-            this.updateLoader(50 + ((i + 1) / repasoFiles.length) * 45, `Indexando ${src.unitName}...`);
-            await this.saveToIndexedDB(`pdfBuffer_${src.key}`, buf);
-            this.pdfDocs[src.key] = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
-            const qs = await this.extractMoodleRepasoQuestions(this.pdfDocs[src.key], src);
-            for (const q of qs) {
-              existingMap.set(q.id, q);
-            }
-          }
-
-          this.repasoQuestions = Array.from(existingMap.values());
-          await this.saveToIndexedDB('parsedRepasos_v3', this.repasoQuestions);
-        }
-
-        this.questions = [...this.baseQuestions, ...this.repasoQuestions];
-        if (this.questions.length > 0) {
-          this.buildUnitsIndex();
-          this.updateLoader(100, `¡Listo! ${this.questions.length} preguntas indexadas correctamente.`);
-          this.updateBadge(`${this.questions.length} preg listas`);
-          setTimeout(() => {
-            document.getElementById('loaderBanner').classList.add('hidden');
-          }, 800);
-          this.renderDashboard();
-        }
+        await this.processBothPdfBuffers(bufPed, bufGuev);
       },
 
-      async processBasePdfBuffers(bufPed, bufGuev, pctStart = 0, pctEnd = 100) {
-        const allBase = [];
-        const midPct = pctStart + (pctEnd - pctStart) * 0.25;
+      async processBothPdfBuffers(bufPed, bufGuev) {
+        const allParsed = [];
 
         if (bufPed) {
           await this.saveToIndexedDB('pdfBuffer_PEDIATRIA', bufPed);
@@ -1792,10 +1517,10 @@
             'PEDIATRIA',
             1,
             PEDIATRIA_CHAPTERS,
-            pctStart,
-            midPct
+            0,
+            20
           );
-          allBase.push(...pedQuestions);
+          allParsed.push(...pedQuestions);
         }
 
         if (bufGuev) {
@@ -1804,87 +1529,78 @@
           const guevQuestions = await this.extractQuestionsFromPdfDoc(
             this.pdfDocs.GUEVARA,
             'GUEVARA',
-            10,
+            10, // Questions start on page 10 in Banco_EUNACOM_Guevara.pdf
             GUEVARA_CHAPTERS,
-            midPct,
-            pctEnd
+            20,
+            100
           );
-          allBase.push(...guevQuestions);
+          allParsed.push(...guevQuestions);
         }
 
-        if (allBase.length > 0) {
-          this.baseQuestions = allBase;
-          await this.saveToIndexedDB('parsedQuestions', this.baseQuestions);
+        if (allParsed.length > 0) {
+          this.questions = allParsed;
+          await this.saveToIndexedDB('parsedQuestions', this.questions);
+          this.buildUnitsIndex();
+          this.updateLoader(100, `¡Listo! ${this.questions.length} preguntas indexadas correctamente.`);
+          this.updateBadge(`${this.questions.length} preg listas`);
+          setTimeout(() => {
+            document.getElementById('loaderBanner').classList.add('hidden');
+          }, 800);
+          this.renderDashboard();
         }
       },
 
-      groupItemsIntoLines(items) {
-        if (!items || items.length === 0) return [];
-        const sorted = [...items].sort((a, b) => {
-          const yDiff = b.transform[5] - a.transform[5];
-          if (Math.abs(yDiff) > 3.5) return yDiff;
-          return a.transform[4] - b.transform[4];
-        });
-
-        const lines = [];
-        let currentLineY = null;
-        let currentLineParts = [];
-
-        for (const it of sorted) {
-          const y = it.transform[5];
-          if (currentLineY === null || Math.abs(currentLineY - y) <= 3.5) {
-            currentLineParts.push(it.str);
-            if (currentLineY === null) currentLineY = y;
-          } else {
-            lines.push({
-              y: currentLineY,
-              text: currentLineParts.join(' ').replace(/\s+/g, ' ').trim()
-            });
-            currentLineParts = [it.str];
-            currentLineY = y;
-          }
-        }
-        if (currentLineParts.length > 0) {
-          lines.push({
-            y: currentLineY,
-            text: currentLineParts.join(' ').replace(/\s+/g, ' ').trim()
-          });
-        }
-        return lines;
-      },
-
-      async extractPdfLinesWithPages(pdfDoc, startPage, onProgress) {
+      async extractQuestionsFromPdfDoc(pdfDoc, bankId, startPage, chaptersMap, pctStart, pctEnd) {
         const numPages = pdfDoc.numPages;
         const linesWithPages = [];
-        const CHUNK_SIZE = 15;
+        const CHUNK_SIZE = 15; // Mobile anti-crash chunking
 
         for (let p = startPage; p <= numPages; p++) {
           const page = await pdfDoc.getPage(p);
           const textContent = await page.getTextContent();
-          const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
-          const grouped = this.groupItemsIntoLines(items);
-          linesWithPages.push({ page: p, lines: grouped.map(l => l.text) });
 
+          // Reconstruct lines from PDF text items using Y coordinate grouping
+          const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
+          items.sort((a, b) => {
+            const yDiff = b.transform[5] - a.transform[5];
+            if (Math.abs(yDiff) > 3.5) return yDiff;
+            return a.transform[4] - b.transform[4];
+          });
+
+          const pageLines = [];
+          let currentLineY = null;
+          let currentLineParts = [];
+
+          for (const it of items) {
+            const y = it.transform[5];
+            if (currentLineY === null || Math.abs(currentLineY - y) <= 3.5) {
+              currentLineParts.push(it.str);
+              if (currentLineY === null) currentLineY = y;
+            } else {
+              pageLines.push(currentLineParts.join(' ').replace(/\s+/g, ' ').trim());
+              currentLineParts = [it.str];
+              currentLineY = y;
+            }
+          }
+          if (currentLineParts.length > 0) {
+            pageLines.push(currentLineParts.join(' ').replace(/\s+/g, ' ').trim());
+          }
+
+          linesWithPages.push({ page: p, lines: pageLines });
+
+          // Clean up page resources to keep mobile memory low
           if (typeof page.cleanup === 'function') page.cleanup();
 
-          if (onProgress && (p % CHUNK_SIZE === 0 || p === numPages)) {
-            onProgress(p, numPages);
+          if (p % CHUNK_SIZE === 0 || p === numPages) {
+            const progressRatio = (p - startPage) / Math.max(1, numPages - startPage);
+            const currentPct = pctStart + progressRatio * (pctEnd - pctStart);
+            this.updateLoader(
+              currentPct,
+              `Indexando ${bankId === 'PEDIATRIA' ? 'Banco Pediatría' : 'Banco Guevara'} (página ${p} de ${numPages})...`
+            );
             await new Promise(r => setTimeout(r, 1));
           }
         }
-
-        return linesWithPages;
-      },
-
-      async extractQuestionsFromPdfDoc(pdfDoc, bankId, startPage, chaptersMap, pctStart, pctEnd) {
-        const linesWithPages = await this.extractPdfLinesWithPages(pdfDoc, startPage, (p, numPages) => {
-          const progressRatio = (p - startPage) / Math.max(1, numPages - startPage);
-          const currentPct = pctStart + progressRatio * (pctEnd - pctStart);
-          this.updateLoader(
-            currentPct,
-            `Indexando ${bankId === 'PEDIATRIA' ? 'Banco Pediatría' : 'Banco Guevara'} (página ${p} de ${numPages})...`
-          );
-        });
 
         return this.parseStructuredQuestions(linesWithPages, bankId, chaptersMap);
       },
@@ -1900,19 +1616,23 @@
         const extracted = [];
         let currentSubtopic = '';
 
+        // Flatten all non-trivial lines while preserving page number
         const flatLines = [];
         for (const pageObj of linesWithPages) {
           const p = pageObj.page;
           for (const rawLine of pageObj.lines) {
             const line = rawLine.trim();
             if (!line) continue;
+            // Skip standalone page numbers
             if (/^\d{1,3}$/.test(line)) continue;
+            // Skip TOC lines containing pipe "| 10" or "Preguntas EUNACOM Pediatría" or "Contenido"
             if (/\|\s*\d+$/.test(line) || line === 'Contenido' || line === 'Preguntas EUNACOM Pediatría') continue;
             flatLines.push({ page: p, text: line });
           }
         }
 
-        let state = 'IDLE';
+        // State machine to parse questions
+        let state = 'IDLE'; // IDLE | STEM | OPTIONS | EXPLANATION
         let curQ = null;
         let curOptKey = null;
 
@@ -1924,6 +1644,7 @@
             .replace(/^La prueba de origen no tra[ií]a la respuesta ni la explicaci[oó]n;[^\n]*\n?/i, '')
             .trim();
 
+          // Clean OCR artifacts from ECG/Radiographs if present at the end of stem
           curQ.hasImage = IMAGE_CUE_REGEX.test(curQ.stem);
 
           const slugUnit = curQ.unit.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
@@ -1937,6 +1658,7 @@
           const { page, text } = flatLines[i];
           const unitForPage = this.getChapterForPage(chaptersMap, page);
 
+          // Check if line is a section/subtopic header like "Hipertensión arterial y dislipidemia (10)"
           const headerMatch = text.match(/^([A-ZÁÉÍÓÚÑ][^0-9\n]{3,85}?)\s*\(\d+\)\.?$/);
           if (headerMatch && state === 'IDLE') {
             const candidateHeader = headerMatch[1].trim();
@@ -1951,7 +1673,6 @@
             if (qStartMatch) {
               curQ = {
                 bank: bankId,
-                pdfKey: bankId,
                 unit: unitForPage,
                 subtopic: currentSubtopic || unitForPage,
                 num: parseInt(qStartMatch[1], 10),
@@ -1969,6 +1690,7 @@
           }
 
           if (state === 'STEM') {
+            // Transition to options when option 'a.' appears
             const optAMatch = text.match(/^([aA])[\.\)]\s+(.+)/);
             if (optAMatch) {
               curOptKey = 'a';
@@ -2009,6 +1731,7 @@
               continue;
             }
 
+            // Safety check in case a question had no "Fuente:" line and a new header or next question starts
             if (headerMatch) {
               const candidateHeader = headerMatch[1].trim();
               if (candidateHeader.toLowerCase() !== unitForPage.toLowerCase()) {
@@ -2027,317 +1750,17 @@
         return extracted;
       },
 
-      /* ==================== MOODLE REPASO & RECONSTRUCCIÓN TWO-COLUMN SPATIAL PARSER ==================== */
-      normalizeForComparison(str) {
-        return (str || '')
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/^[oa0☐✓✔x\.\)\s]+/i, '')
-          .replace(/[✓✔x]+$/g, '')
-          .replace(/[^a-z0-9]+/g, ' ')
-          .trim();
-      },
-
-      matchAnswerLetterFromText(optionsObj, answerText) {
-        const targetNorm = this.normalizeForComparison(answerText);
-        const letters = Object.keys(optionsObj);
-        if (letters.length === 0) return 'a';
-
-        for (const l of letters) {
-          const optNorm = this.normalizeForComparison(optionsObj[l]);
-          if (optNorm && optNorm === targetNorm) return l;
-        }
-
-        for (const l of letters) {
-          const optNorm = this.normalizeForComparison(optionsObj[l]);
-          if (optNorm && targetNorm && (optNorm.includes(targetNorm) || targetNorm.includes(optNorm))) {
-            return l;
-          }
-        }
-
-        const targetTokens = new Set(targetNorm.split(' ').filter(Boolean));
-        let bestLetter = letters[0];
-        let bestScore = -1;
-
-        for (const l of letters) {
-          const optTokens = this.normalizeForComparison(optionsObj[l]).split(' ').filter(Boolean);
-          if (optTokens.length === 0) continue;
-          let hits = 0;
-          for (const tok of optTokens) {
-            if (targetTokens.has(tok)) hits++;
-          }
-          const score = hits / Math.max(optTokens.length, targetTokens.size, 1);
-          if (score > bestScore) {
-            bestScore = score;
-            bestLetter = l;
-          }
-        }
-        return bestLetter;
-      },
-
-      async extractMoodleEventsSpatial(pdfDoc) {
-        const numPages = pdfDoc.numPages;
-        const events = [];
-        const SIDEBAR_NOISE_REGEX = /^(?:Pregunta\s+\d{1,3}|Sin contestar|Correcta|Incorrecta|Parcialmente correcta|Punt[uú]a como|Se punt[uú]a|sobre 1,00|1,00|0,00|Marcar|pregunta|Marcar pregunta|ill|11\.|a[uú]n|in|responder|sponder|ponder|onder|donder|esponder|t[uú]a como|úa como|como|unta\s+\d+|egunta\s+\d+|nta\s+\d+|ta\s+\d+)$/i;
-
-        let sidebarMaxX = 115;
-
-        for (let p = 1; p <= numPages; p++) {
-          const page = await pdfDoc.getPage(p);
-          const textContent = await page.getTextContent();
-          const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
-
-          const pregItems = items.filter(it => /^Pregunta\s+\d{1,3}\b/i.test(it.str.trim()));
-          if (pregItems.length > 0) {
-            const leftX = Math.min(...pregItems.map(it => it.transform[4]));
-            sidebarMaxX = leftX + 65;
-          }
-
-          const leftItems = [];
-          const rightItems = [];
-
-          for (const it of items) {
-            const x = it.transform[4];
-            const str = it.str.trim();
-            // Only send items to leftItems if they are in the left column AND look like Moodle sidebar labels
-            if (x < sidebarMaxX && SIDEBAR_NOISE_REGEX.test(str)) {
-              leftItems.push(it);
-            } else {
-              rightItems.push(it);
-            }
-          }
-
-          const leftLines = this.groupItemsIntoLines(leftItems);
-          const rightLines = this.groupItemsIntoLines(rightItems);
-
-          const pageEvents = [];
-
-          for (const l of leftLines) {
-            const m = l.text.match(/^Pregunta\s+(\d{1,3})\b/i);
-            if (m) {
-              pageEvents.push({
-                page: p,
-                y: l.y + 4,
-                type: 'Q_START',
-                qNum: parseInt(m[1], 10),
-                text: `Pregunta ${m[1]}`
-              });
-            }
-          }
-
-          for (const r of rightLines) {
-            // Also detect inline "Pregunta N" if a PDF was exported in single-column layout
-            const inlineQ = r.text.match(/^Pregunta\s+(\d{1,3})\b(.*)$/i);
-            if (inlineQ) {
-              pageEvents.push({
-                page: p,
-                y: r.y + 2,
-                type: 'Q_START',
-                qNum: parseInt(inlineQ[1], 10),
-                text: `Pregunta ${inlineQ[1]}`
-              });
-              const rest = (inlineQ[2] || '').trim();
-              if (rest && !SIDEBAR_NOISE_REGEX.test(rest)) {
-                pageEvents.push({ page: p, y: r.y, type: 'CONTENT', text: rest });
-              }
-            } else {
-              pageEvents.push({
-                page: p,
-                y: r.y,
-                type: 'CONTENT',
-                text: r.text
-              });
-            }
-          }
-
-          pageEvents.sort((a, b) => b.y - a.y);
-          events.push(...pageEvents);
-
-          if (typeof page.cleanup === 'function') page.cleanup();
-          if (p % 15 === 0) await new Promise(r => setTimeout(r, 1));
-        }
-
-        return events;
-      },
-
-      async extractMoodleRepasoQuestions(pdfDoc, repasoMeta) {
-        const events = await this.extractMoodleEventsSpatial(pdfDoc);
-
-        const EXACT_NOISE_REGEX = /^(?:Comenzado el.*|Estado\s+Finalizado|Finalizado.*|Tiempo empleado.*|Puntos\s+[\d,\.\/]+|Calificaci[oó]n\s+[\d,\.]+.*|Sin contestar|Correcta|Incorrecta|Parcialmente correcta|Se punt[uú]a.*|Punt[uú]a como|sobre 1,00|1,00|0,00|Seleccione una\s*:?|Actividad previa|Ir a\.\.\.|Siguiente actividad|Cap \d+ Internos.*|Avisos|Cuestionario \d+\.\d+|Resumen de alimentaci[oó]n|Reconstrucci[oó]n Eunacom agosto.*|Cap[ií]tulo \d+ - Prueba Final.*|Prueba de 70 preguntas.*|\(2\) WhatsApp|e\.doctorguevara\.cl.*|a Principal Área personal.*|Tiempo restante.*|Marcar|pregunta|Marcar pregunta)$/i;
-
-        const extracted = [];
-        let state = 'IDLE';
-        let curQ = null;
-        let curOptKey = null;
-        let emptyOptQueue = [];
-
-        const finalizeMoodleQuestion = () => {
-          if (!curQ) return;
-
-          for (const k of Object.keys(curQ.options)) {
-            curQ.options[k] = curQ.options[k].replace(/\s*[xX✓✔]+$/, '').trim();
-          }
-
-          curQ.stem = curQ.stem.trim();
-          curQ.explanation = curQ.explanation.trim();
-          curQ.answerText = (curQ.answerText || '').trim();
-          curQ.answer = this.matchAnswerLetterFromText(curQ.options, curQ.answerText);
-          curQ.hasImage = IMAGE_CUE_REGEX.test(curQ.stem);
-          curQ.id = `REPASO_${repasoMeta.key}_Q${curQ.num}`;
-
-          if (Object.keys(curQ.options).length >= 2 && curQ.stem) {
-            extracted.push(curQ);
-          }
-
-          curQ = null;
-          curOptKey = null;
-          emptyOptQueue = [];
-        };
-
-        for (let i = 0; i < events.length; i++) {
-          const ev = events[i];
-
-          if (ev.type === 'Q_START') {
-            if (curQ) finalizeMoodleQuestion();
-            curQ = {
-              bank: 'REPASO',
-              pdfKey: repasoMeta.key,
-              unit: repasoMeta.unitName,
-              subtopic: repasoMeta.subtopic,
-              num: ev.qNum,
-              page: ev.page,
-              stem: '',
-              options: {},
-              answer: '',
-              answerText: '',
-              isProposed: false,
-              explanation: '',
-              source: `${repasoMeta.unitName} · P${ev.qNum}`
-            };
-            state = 'STEM';
-            curOptKey = null;
-            emptyOptQueue = [];
-            continue;
-          }
-
-          if (!curQ) continue;
-
-          const text = ev.text.trim();
-          if (!text) continue;
-          if (/^\d{1,3}$/.test(text)) continue;
-          if (/^[xX✓✔☐\.\-]+$/.test(text)) continue;
-          if (EXACT_NOISE_REGEX.test(text)) continue;
-
-          const ansLineMatch = text.match(/^La respuesta correcta es\s*:\s*(.*)$/i);
-          if (ansLineMatch) {
-            curQ.answerText = (ansLineMatch[1] || '').trim();
-            state = 'ANSWER_TEXT';
-            continue;
-          }
-
-          if (state === 'ANSWER_TEXT') {
-            curQ.answerText += (curQ.answerText ? ' ' : '') + text;
-            continue;
-          }
-
-          const optMatch = text.match(/^(?:[O0o☐✓✔xX\s]{0,3})?([a-eA-E])[\.\)]\s*(.*)$/);
-          const bulletOptMatch = (state === 'OPTIONS' && !optMatch) ? text.match(/^[•\-\.]\s+(.+)$/) : null;
-
-          if (state === 'STEM') {
-            if (optMatch && optMatch[1].toLowerCase() === 'a') {
-              const val = (optMatch[2] || '').trim();
-              curOptKey = 'a';
-              curQ.options['a'] = val;
-              if (!val) emptyOptQueue.push('a');
-              state = 'OPTIONS';
-            } else {
-              curQ.stem += (curQ.stem ? '\n' : '') + text;
-            }
-            continue;
-          }
-
-          if (state === 'OPTIONS') {
-            if (optMatch) {
-              const letter = optMatch[1].toLowerCase();
-              const val = (optMatch[2] || '').trim();
-              curOptKey = letter;
-              curQ.options[letter] = val;
-              if (!val && !emptyOptQueue.includes(letter)) {
-                emptyOptQueue.push(letter);
-              }
-              continue;
-            }
-
-            if (bulletOptMatch && curOptKey) {
-              const nextLetterCode = curOptKey.charCodeAt(0) + 1;
-              if (nextLetterCode <= 101) {
-                curOptKey = String.fromCharCode(nextLetterCode);
-                curQ.options[curOptKey] = bulletOptMatch[1].trim();
-                continue;
-              }
-            }
-
-            if (emptyOptQueue.length > 0) {
-              const targetLetter = emptyOptQueue.shift();
-              curQ.options[targetLetter] = text;
-              curOptKey = targetLetter;
-              continue;
-            }
-
-            if (curOptKey === 'e') {
-              const curOptVal = (curQ.options['e'] || '').trim();
-              const startsLowerOrDash = /^[a-záéíóúñ0-9,\(\-]/.test(text);
-              const endsWithConnector = /\b(de|del|la|las|el|los|y|o|e|u|a|en|con|por|para|sin|al|que|como)$/i.test(curOptVal);
-
-              if (startsLowerOrDash || endsWithConnector) {
-                curQ.options['e'] += ' ' + text;
-              } else {
-                state = 'EXPLANATION';
-                curQ.explanation = text;
-              }
-              continue;
-            }
-
-            if (curOptKey) {
-              curQ.options[curOptKey] += ' ' + text;
-            }
-            continue;
-          }
-
-          if (state === 'EXPLANATION') {
-            curQ.explanation += (curQ.explanation ? '\n' : '') + text;
-          }
-        }
-
-        if (curQ) finalizeMoodleQuestion();
-        return extracted;
-      },
-
       buildUnitsIndex() {
         this.unitsMap.clear();
 
+        // Initialize canonical order: Pediatría (14 units) + Guevara (19 units)
         for (const ch of PEDIATRIA_CHAPTERS) {
           const uid = `PEDIATRIA__${ch.name}`;
           this.unitsMap.set(uid, { id: uid, bank: 'PEDIATRIA', name: ch.name, questions: [] });
         }
-
         for (const ch of GUEVARA_CHAPTERS) {
           const uid = `GUEVARA__${ch.name}`;
           this.unitsMap.set(uid, { id: uid, bank: 'GUEVARA', name: ch.name, questions: [] });
-        }
-
-        for (const rep of REPASO_SOURCES) {
-          const uid = `REPASO__${rep.unitName}`;
-          this.unitsMap.set(uid, {
-            id: uid,
-            bank: 'REPASO',
-            name: rep.unitName,
-            category: rep.category,
-            subtopic: rep.subtopic,
-            filename: rep.filename,
-            questions: []
-          });
         }
 
         for (const q of this.questions) {
@@ -2357,15 +1780,17 @@
         let answeredQ = 0, correctQ = 0, incorrectQ = 0, everFailedQ = 0, bookmarkedQ = 0;
         let pedTotal = 0, pedAns = 0, pedCor = 0;
         let guevTotal = 0, guevAns = 0, guevCor = 0;
-        let repTotal = 0, repAns = 0, repCor = 0;
 
         for (const q of this.questions) {
           if (q.bank === 'PEDIATRIA') pedTotal++;
-          else if (q.bank === 'GUEVARA') guevTotal++;
-          else if (q.bank === 'REPASO') repTotal++;
+          else guevTotal++;
 
-          if (this.isEverFailed(q.id)) everFailedQ++;
-          if (this.isBookmarked(q.id)) bookmarkedQ++;
+          if (this.isEverFailed(q.id)) {
+            everFailedQ++;
+          }
+          if (this.isBookmarked(q.id)) {
+            bookmarkedQ++;
+          }
 
           if (this.isAnswered(q.id)) {
             answeredQ++;
@@ -2376,12 +1801,9 @@
             if (q.bank === 'PEDIATRIA') {
               pedAns++;
               if (isCor) pedCor++;
-            } else if (q.bank === 'GUEVARA') {
+            } else {
               guevAns++;
               if (isCor) guevCor++;
-            } else if (q.bank === 'REPASO') {
-              repAns++;
-              if (isCor) repCor++;
             }
           }
         }
@@ -2401,16 +1823,19 @@
         document.getElementById('kpiAccuracyCounts').textContent = `${correctQ} ✅ · ${incorrectQ} ❌`;
 
         const everFailedBadge = document.getElementById('kpiEverFailedBadge');
-        if (everFailedBadge) everFailedBadge.textContent = `📌 ${everFailedQ} hist. fallos`;
+        if (everFailedBadge) {
+          everFailedBadge.textContent = `📌 ${everFailedQ} hist. fallos`;
+        }
 
         const bookmarkedBadge = document.getElementById('kpiBookmarkedBadge');
-        if (bookmarkedBadge) bookmarkedBadge.textContent = `⭐ ${bookmarkedQ} guardadas`;
+        if (bookmarkedBadge) {
+          bookmarkedBadge.textContent = `⭐ ${bookmarkedQ} guardadas`;
+        }
 
         const tabSavedPill = document.getElementById('tabSavedCountPill');
-        if (tabSavedPill) tabSavedPill.textContent = bookmarkedQ;
-
-        const tabRepasosPill = document.getElementById('tabRepasosCountPill');
-        if (tabRepasosPill) tabRepasosPill.textContent = `${repAns}/${repTotal}`;
+        if (tabSavedPill) {
+          tabSavedPill.textContent = bookmarkedQ;
+        }
 
         document.getElementById('kpiPedPct').textContent = `${pedAns} / ${pedTotal}`;
         document.getElementById('kpiPedAcc').textContent = `${pedAcc}% acierto`;
@@ -2422,7 +1847,6 @@
 
         this.renderUnitsGrid();
         this.renderSavedByChapterTab();
-        this.renderRepasosTab();
       },
 
       startGlobalEverFailedQuiz() {
@@ -2479,7 +1903,6 @@
         this.bankFilter = filter;
         ['ALL', 'PEDIATRIA', 'GUEVARA'].forEach(k => {
           const btn = document.getElementById(`filterBank${k}`);
-          if (!btn) return;
           if (k === filter) {
             btn.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
           } else {
@@ -2496,7 +1919,6 @@
         container.innerHTML = '';
 
         for (const unit of this.unitsMap.values()) {
-          if (unit.bank === 'REPASO') continue;
           if (unit.questions.length === 0) continue;
           if (this.bankFilter !== 'ALL' && unit.bank !== this.bankFilter) continue;
           if (query && !unit.name.toLowerCase().includes(query)) continue;
@@ -2574,206 +1996,6 @@
         }
       },
 
-      /* ==================== TAB 4: REPASOS & RECONSTRUCCIONES RENDERING ==================== */
-      renderRepasosTab() {
-        const container = document.getElementById('repasosGrid');
-        if (!container) return;
-        const query = (document.getElementById('unitSearchInput')?.value || '').toLowerCase().trim();
-        container.innerHTML = '';
-
-        let repTotal = 0, repAns = 0, repCor = 0, repEverFailed = 0, repBookmarked = 0;
-        const missingFilenames = [];
-
-        for (const unit of this.unitsMap.values()) {
-          if (unit.bank !== 'REPASO') continue;
-          const total = unit.questions.length;
-
-          if (total === 0) {
-            missingFilenames.push(unit.filename || unit.name);
-            continue;
-          }
-
-          repTotal += total;
-
-          let answered = 0, correct = 0, everFailed = 0, bookmarked = 0;
-          for (const q of unit.questions) {
-            if (this.isEverFailed(q.id)) { everFailed++; repEverFailed++; }
-            if (this.isBookmarked(q.id)) { bookmarked++; repBookmarked++; }
-            if (this.isAnswered(q.id)) {
-              answered++;
-              repAns++;
-              if (this.isCurrentlyCorrect(q.id)) { correct++; repCor++; }
-            }
-          }
-
-          if (query && !unit.name.toLowerCase().includes(query) && !(unit.category || '').toLowerCase().includes(query) && !(unit.subtopic || '').toLowerCase().includes(query)) {
-            continue;
-          }
-
-          const advPct = total > 0 ? Math.round((answered / total) * 100) : 0;
-          const accPct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
-          const numSets = Math.ceil(total / 20);
-
-          let accBadgeColor = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
-          if (answered > 0) {
-            if (accPct >= 75) accBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
-            else if (accPct >= 50) accBadgeColor = 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30';
-            else accBadgeColor = 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30';
-          }
-
-          const bookmarkedPill = bookmarked > 0
-            ? `<button onclick="app.startUnitBookmarkedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 transition" title="Practicar guardadas ⭐ de esta prueba">⭐ ${bookmarked}</button>`
-            : '';
-
-          const everFailedPill = everFailed > 0
-            ? `<button onclick="app.startUnitEverFailedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition" title="Practicar historial de falladas de esta prueba">📌 ${everFailed}</button>`
-            : '';
-
-          const card = document.createElement('div');
-          card.className = 'bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm hover:border-teal-500/60 transition flex flex-col justify-between gap-4';
-          card.innerHTML = `
-            <div class="space-y-2.5">
-              <div class="flex flex-wrap items-center justify-between gap-1.5">
-                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-teal-500/15 text-teal-600 dark:text-teal-300">${unit.category || 'REPASO'}</span>
-                <div class="flex flex-wrap items-center gap-1">
-                  ${bookmarkedPill}
-                  ${everFailedPill}
-                  <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${accBadgeColor}">
-                    ${answered > 0 ? `Acierto: ${accPct}% (${correct}/${answered})` : 'Sin intentos'}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <h3 class="text-base font-extrabold text-slate-900 dark:text-white leading-snug">${unit.name}</h3>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${unit.subtopic || ''}</p>
-              </div>
-              <div class="space-y-1">
-                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span>Avance: <strong class="text-slate-800 dark:text-slate-200">${answered} / ${total}</strong> preg</span>
-                  <span class="font-bold text-teal-600 dark:text-teal-400">${advPct}%</span>
-                </div>
-                <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div class="h-full bg-teal-500 transition-all duration-300" style="width: ${advPct}%"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
-              <button onclick="app.startFullRepasoExam('${unit.id}')" class="py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition flex items-center justify-center gap-1">
-                <span>📝 ${answered > 0 && answered < total ? 'Continuar' : 'Rendir'} (${total})</span>
-              </button>
-              <button onclick="app.openUnitSets('${unit.id}')" class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center gap-1">
-                <span>📋 Sets de 20 (${numSets})</span>
-              </button>
-            </div>
-          `;
-          container.appendChild(card);
-        }
-
-        const missingBanner = document.getElementById('repasosMissingBanner');
-        if (missingBanner) {
-          if (missingFilenames.length > 0) {
-            missingBanner.classList.remove('hidden');
-            document.getElementById('repasosMissingTitle').textContent =
-              `⚠️ ${missingFilenames.length} de ${REPASO_SOURCES.length} PDFs de Repaso aún no se detectan en la raíz del repositorio:`;
-            document.getElementById('repasosMissingList').textContent =
-              `Verifica que estos archivos estén subidos en la raíz de GitHub (junto a index.html) o cárgalos aquí: ${missingFilenames.join(' · ')}`;
-          } else {
-            missingBanner.classList.add('hidden');
-          }
-        }
-
-        const statsEl = document.getElementById('repasosSummaryStats');
-        if (statsEl) {
-          const repAcc = repAns > 0 ? Math.round((repCor / repAns) * 100) : 0;
-          statsEl.textContent = `${repAns} / ${repTotal} preg · ${repAcc}% acierto`;
-        }
-
-        const efBtn = document.getElementById('repasosEverFailedBtn');
-        if (efBtn) efBtn.textContent = `📌 Falladas Repasos (${repEverFailed})`;
-
-        const bmBtn = document.getElementById('repasosBookmarkedBtn');
-        if (bmBtn) bmBtn.textContent = `⭐ Guardadas Repasos (${repBookmarked})`;
-      },
-
-      startFullRepasoExam(unitId) {
-        const unit = this.unitsMap.get(unitId);
-        if (!unit || unit.questions.length === 0) return;
-        this.activeUnitId = unitId;
-
-        let firstUnanswered = unit.questions.findIndex(q => !this.isAnswered(q.id));
-        if (firstUnanswered === -1) firstUnanswered = 0;
-
-        this.launchQuizSession(
-          [...unit.questions],
-          `${unit.name}`,
-          `${unit.subtopic || 'Ensayo Completo'} · ${unit.questions.length} preguntas`,
-          firstUnanswered
-        );
-      },
-
-      startRepasosRandomQuiz(count = 20) {
-        if (this.repasoQuestions.length === 0) {
-          alert('Aún no hay preguntas de Repaso cargadas.');
-          return;
-        }
-        let pool = this.repasoQuestions.filter(q => !this.isCurrentlyCorrect(q.id));
-        if (pool.length === 0) pool = [...this.repasoQuestions];
-
-        const chosen = this.shuffleArray(pool).slice(0, count);
-        for (const q of chosen) {
-          if (this.isAnswered(q.id)) this.markQuestionResetForRetry(q.id);
-        }
-        this.saveProgressToStorage();
-
-        this.launchQuizSession(
-          chosen,
-          `Repasos & Reconstrucciones — Random (${chosen.length})`,
-          'Mezcla inteligente de los ensayos de repaso (sin repetir acertadas)',
-          0
-        );
-      },
-
-      startRepasosEverFailedQuiz() {
-        const pool = this.repasoQuestions.filter(q => this.isEverFailed(q.id));
-        if (pool.length === 0) {
-          alert('Aún no tienes preguntas falladas registradas en la sección Repasos.');
-          return;
-        }
-        const chosen = this.shuffleArray(pool).slice(0, 20);
-        for (const q of chosen) {
-          this.markQuestionResetForRetry(q.id);
-        }
-        this.saveProgressToStorage();
-
-        this.launchQuizSession(
-          chosen,
-          `Falladas de Repasos (${chosen.length} de ${pool.length})`,
-          'Repaso focalizado de preguntas falladas en ensayos finales y reconstrucciones',
-          0
-        );
-      },
-
-      startRepasosBookmarkedQuiz() {
-        const pool = this.repasoQuestions.filter(q => this.isBookmarked(q.id));
-        if (pool.length === 0) {
-          alert('Aún no tienes preguntas guardadas con ⭐ en la sección Repasos.');
-          return;
-        }
-        const chosen = this.shuffleArray(pool).slice(0, 20);
-        for (const q of chosen) {
-          this.markQuestionResetForRetry(q.id);
-        }
-        this.saveProgressToStorage();
-
-        this.launchQuizSession(
-          chosen,
-          `Guardadas de Repasos ⭐ (${chosen.length} de ${pool.length})`,
-          'Repaso de preguntas guardadas en ensayos finales y reconstrucciones',
-          0
-        );
-      },
-
       renderSavedByChapterTab() {
         const container = document.getElementById('savedChaptersGrid');
         if (!container) return;
@@ -2797,12 +2019,9 @@
             else if (this.isCurrentlyIncorrect(q.id)) inc++;
           }
 
-          let bankBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
-          if (unit.bank === 'PEDIATRIA') {
-            bankBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`;
-          } else if (unit.bank === 'REPASO') {
-            bankBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-teal-500/15 text-teal-600 dark:text-teal-300">REPASO</span>`;
-          }
+          const bankBadge = unit.bank === 'PEDIATRIA'
+            ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`
+            : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
 
           const qNumsPreview = savedQs.slice(0, 8).map(q => `#${q.num}`).join(', ') + (savedQs.length > 8 ? '...' : '');
 
@@ -2842,7 +2061,7 @@
               <div class="text-3xl">☆</div>
               <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Aún no tienes preguntas guardadas en esta vista</h3>
               <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                Cuando estés haciendo cualquier ensayo o repaso, presiona el botón <strong>"☆ Guardar"</strong> (arriba a la derecha de la pregunta o con la tecla <strong>G</strong>) y aparecerán clasificadas por capítulo aquí.
+                Cuando estés haciendo cualquier ensayo o revisando una pregunta, presiona el botón <strong>"☆ Guardar"</strong> (arriba a la derecha de la pregunta o con la tecla <strong>G</strong>) y aparecerán clasificadas por capítulo aquí.
               </p>
             </div>
           `;
@@ -2850,19 +2069,14 @@
       },
 
       switchMainTab(tab) {
-        this.lastMainTab = tab;
         const isUnits = tab === 'units';
         const isSaved = tab === 'saved';
         const isRandom = tab === 'random';
-        const isRepasos = tab === 'repasos';
 
         document.getElementById('tabContentUnits').classList.toggle('hidden', !isUnits);
         document.getElementById('tabContentSaved').classList.toggle('hidden', !isSaved);
         document.getElementById('tabContentRandom').classList.toggle('hidden', !isRandom);
-        document.getElementById('tabContentRepasos').classList.toggle('hidden', !isRepasos);
-
         document.getElementById('unitFilterControls').classList.toggle('hidden', isRandom);
-        document.getElementById('bankFilterPillsBox').classList.toggle('hidden', isRepasos);
 
         const activeCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm';
         const inactiveCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
@@ -2870,10 +2084,10 @@
         document.getElementById('tabBtnUnits').className = isUnits ? activeCls : inactiveCls;
         document.getElementById('tabBtnSaved').className = isSaved ? activeCls : inactiveCls;
         document.getElementById('tabBtnRandom').className = isRandom ? activeCls : inactiveCls;
-        document.getElementById('tabBtnRepasos').className = isRepasos ? activeCls : inactiveCls;
 
-        if (isSaved) this.renderSavedByChapterTab();
-        if (isRepasos) this.renderRepasosTab();
+        if (isSaved) {
+          this.renderSavedByChapterTab();
+        }
       },
 
       /* ==================== UNIT SETS OF 20 VIEW ==================== */
@@ -2887,33 +2101,11 @@
         document.getElementById('summaryView').classList.add('hidden');
         document.getElementById('setsView').classList.remove('hidden');
 
-        const backLabel = document.getElementById('setsViewBackLabel');
-        if (backLabel) {
-          backLabel.textContent = unit.bank === 'REPASO' ? 'Volver a Repasos y Reconstrucciones' : 'Volver a Progreso por Unidades';
-        }
-
         const badge = document.getElementById('setsViewBankBadge');
-        if (unit.bank === 'PEDIATRIA') {
-          badge.textContent = 'BANCO PEDIATRÍA';
-          badge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/15 text-sky-400';
-        } else if (unit.bank === 'REPASO') {
-          badge.textContent = unit.category || 'REPASO EUNACOM';
-          badge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-teal-500/15 text-teal-300';
-        } else {
-          badge.textContent = 'BANCO GUEVARA';
-          badge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-indigo-500/15 text-indigo-400';
-        }
-
-        const fullExamBtn = document.getElementById('setsViewFullExamBtn');
-        if (fullExamBtn) {
-          if (unit.bank === 'REPASO') {
-            fullExamBtn.classList.remove('hidden');
-            fullExamBtn.textContent = `📝 Rendir Prueba Completa (${unit.questions.length})`;
-            fullExamBtn.onclick = () => this.startFullRepasoExam(unitId);
-          } else {
-            fullExamBtn.classList.add('hidden');
-          }
-        }
+        badge.textContent = unit.bank === 'PEDIATRIA' ? 'BANCO PEDIATRÍA' : 'BANCO GUEVARA';
+        badge.className = unit.bank === 'PEDIATRIA'
+          ? 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/15 text-sky-400'
+          : 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-indigo-500/15 text-indigo-400';
 
         let unitCurrentWrong = 0;
         let unitEverFailed = 0;
@@ -2984,7 +2176,7 @@
           blockCard.innerHTML = `
             <div class="space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-extrabold text-slate-900 dark:text-white">Bloque ${s + 1} <span class="text-xs font-normal text-slate-500">(Preg. ${firstNum}–${lastNum})</span></span>
+                <span class="text-sm font-extrabold text-slate-900 dark:text-white">Prueba ${s + 1} <span class="text-xs font-normal text-slate-500">(Preg. ${firstNum}–${lastNum})</span></span>
                 <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${statusClass}">${statusLabel}</span>
               </div>
               <div class="flex items-center justify-between text-xs text-slate-500">
@@ -2997,24 +2189,16 @@
             </div>
             <div class="flex items-center gap-1.5 pt-1">
               <button onclick="app.startFixedSet('${unitId}', ${s})" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
-                ${ans > 0 && ans < slice.length ? 'Continuar Bloque' : 'Rendir Bloque'}
+                ${ans > 0 && ans < slice.length ? 'Continuar Prueba' : 'Rendir Prueba'}
               </button>
-              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas actuales de este bloque" class="py-2 px-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌(${inc})</button>` : ''}
-              ${everF > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'everFailed')" title="Repasar historial de falladas de este bloque" class="py-2 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs transition">📌(${everF})</button>` : ''}
-              ${bm > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'bookmarked')" title="Repasar las preguntas guardadas ⭐ de este bloque" class="py-2 px-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 font-bold text-xs transition">⭐(${bm})</button>` : ''}
+              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas actuales de esta prueba" class="py-2 px-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌(${inc})</button>` : ''}
+              ${everF > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'everFailed')" title="Repasar historial de falladas de esta prueba" class="py-2 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs transition">📌(${everF})</button>` : ''}
+              ${bm > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'bookmarked')" title="Repasar las preguntas guardadas ⭐ de esta prueba" class="py-2 px-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 font-bold text-xs transition">⭐(${bm})</button>` : ''}
             </div>
           `;
           grid.appendChild(blockCard);
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      },
-
-      returnFromSetsView() {
-        const wasRepaso = this.activeUnitId && this.activeUnitId.startsWith('REPASO__');
-        this.showDashboard();
-        if (wasRepaso) {
-          this.switchMainTab('repasos');
-        }
       },
 
       startFixedSet(unitId, setIndex) {
@@ -3025,12 +2209,10 @@
         let firstUnanswered = slice.findIndex(q => !this.isAnswered(q.id));
         if (firstUnanswered === -1) firstUnanswered = 0;
 
-        const bankName = unit.bank === 'PEDIATRIA' ? 'Pediatría' : (unit.bank === 'REPASO' ? 'Repasos' : 'Guevara');
-
         this.launchQuizSession(
           slice,
-          `${unit.name} — Bloque ${setIndex + 1}`,
-          `Banco ${bankName} · Bloque fijo de ${slice.length} preguntas`,
+          `${unit.name} — Prueba ${setIndex + 1}`,
+          `Banco ${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'} · Bloque fijo de ${slice.length} preguntas`,
           firstUnanswered
         );
       },
@@ -3062,7 +2244,7 @@
 
         this.launchQuizSession(
           filtered,
-          `${unit.name} — Bloque ${setIndex + 1} (${modeLabel})`,
+          `${unit.name} — Prueba ${setIndex + 1} (${modeLabel})`,
           `Repaso focalizado de ${filtered.length} preguntas`,
           0
         );
@@ -3072,15 +2254,14 @@
       populateRandomUnitsDropdown() {
         const bankSel = document.getElementById('randomBankSelect').value;
         const unitSel = document.getElementById('randomUnitSelect');
-        unitSel.innerHTML = '<option value="ALL">Todas las especialidades / unidades / pruebas</option>';
+        unitSel.innerHTML = '<option value="ALL">Todas las especialidades / unidades</option>';
 
         for (const unit of this.unitsMap.values()) {
           if (unit.questions.length === 0) continue;
           if (bankSel !== 'ALL' && unit.bank !== bankSel) continue;
           const opt = document.createElement('option');
           opt.value = unit.id;
-          const tag = unit.bank === 'PEDIATRIA' ? 'Pediatría' : (unit.bank === 'REPASO' ? 'Repaso' : 'Guevara');
-          opt.textContent = `[${tag}] ${unit.name} (${unit.questions.length})`;
+          opt.textContent = `[${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'}] ${unit.name} (${unit.questions.length})`;
           unitSel.appendChild(opt);
         }
       },
@@ -3179,12 +2360,10 @@
         }
         this.saveProgressToStorage();
 
-        const bankLabel = unit.bank === 'PEDIATRIA' ? 'Pediatría' : (unit.bank === 'REPASO' ? 'Repasos' : 'Guevara');
-
         this.launchQuizSession(
           chosen,
           `${unit.name} — 20 Random`,
-          `Modo Sin Repetir Acertadas · Banco ${bankLabel}`,
+          `Modo Sin Repetir Acertadas · Banco ${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'}`,
           0
         );
       },
@@ -3285,7 +2464,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
 
-      async renderCurrentQuestion() {
+      renderCurrentQuestion() {
         const q = this.activeQuestions[this.currentIndex];
         if (!q) return;
 
@@ -3295,11 +2474,12 @@
         const bookmarked = this.isBookmarked(q.id);
 
         document.getElementById('qCounterBadge').textContent = `Pregunta ${this.currentIndex + 1} / ${total} (#${q.num})`;
-        document.getElementById('qBankBadge').textContent = q.bank === 'PEDIATRIA' ? 'Pediatría' : (q.bank === 'REPASO' ? 'Repaso' : 'Guevara');
+        document.getElementById('qBankBadge').textContent = q.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara';
         document.getElementById('qSubtopicBadge').textContent = q.subtopic || q.unit;
         document.getElementById('qPageBtnText').textContent = `Ver lámina (Pág. ${q.page})`;
         document.getElementById('mobileGridBtnCount').textContent = `${this.currentIndex + 1}/${total}`;
 
+        // Update Bookmark / Save button state (Desktop & Mobile)
         const bmBtn = document.getElementById('qBookmarkBtn');
         const bmIcon = document.getElementById('qBookmarkIcon');
         const bmText = document.getElementById('qBookmarkText');
@@ -3327,6 +2507,7 @@
           }
         }
 
+        // Show badge if this question was ever failed in the past
         const everFailedBadge = document.getElementById('qEverFailedBadge');
         if (everFailedBadge) {
           if (this.isEverFailed(q.id)) {
@@ -3338,26 +2519,24 @@
           }
         }
 
+        // Proposed Answer Warning Banner
         const propWarn = document.getElementById('qProposedWarning');
         if (q.isProposed) propWarn.classList.remove('hidden');
         else propWarn.classList.add('hidden');
 
+        // Question Statement
         document.getElementById('qStatementText').textContent = q.stem;
 
+        // Inline Clinical Image Render if question has image cue
         const inlineImgBox = document.getElementById('inlineImageContainer');
-        const docLookupKey = q.pdfKey || q.bank;
-        if (q.hasImage) {
-          const doc = await this.ensurePdfDocLoaded(docLookupKey);
-          if (doc) {
-            inlineImgBox.classList.remove('hidden');
-            this.renderPdfPageToCanvas(docLookupKey, q.page, document.getElementById('inlinePdfCanvas'), 1.25);
-          } else {
-            inlineImgBox.classList.add('hidden');
-          }
+        if (q.hasImage && this.pdfDocs[q.bank]) {
+          inlineImgBox.classList.remove('hidden');
+          this.renderPdfPageToCanvas(q.bank, q.page, document.getElementById('inlinePdfCanvas'), 1.25);
         } else {
           inlineImgBox.classList.add('hidden');
         }
 
+        // Render Options (a - e)
         const optsContainer = document.getElementById('qOptionsContainer');
         optsContainer.innerHTML = '';
         const letters = Object.keys(q.options).sort();
@@ -3398,6 +2577,7 @@
           optsContainer.appendChild(btn);
         });
 
+        // Render Immediate Feedback Panel
         const fbPanel = document.getElementById('qFeedbackPanel');
         if (hasSelection) {
           fbPanel.classList.remove('hidden');
@@ -3651,8 +2831,8 @@
       },
 
       /* ==================== PDF PAGE / CLINICAL IMAGE VIEWER ==================== */
-      async renderPdfPageToCanvas(docKey, pageNum, canvas, scale = 1.5) {
-        const pdfDoc = await this.ensurePdfDocLoaded(docKey);
+      async renderPdfPageToCanvas(bankId, pageNum, canvas, scale = 1.5) {
+        const pdfDoc = this.pdfDocs[bankId];
         if (!pdfDoc || !canvas) return;
         try {
           const page = await pdfDoc.getPage(pageNum);
@@ -3670,14 +2850,12 @@
         const q = this.activeQuestions[this.currentIndex];
         if (!q) return;
 
-        const docKey = q.pdfKey || q.bank;
-        const doc = await this.ensurePdfDocLoaded(docKey);
-        if (!doc) {
-          alert('Para visualizar la lámina original del PDF, asegúrate de que el PDF esté subido en el repositorio o cargado en la sesión.');
+        if (!this.pdfDocs[q.bank]) {
+          alert('Para visualizar la lámina original del PDF, asegúrate de que el PDF esté cargado en la sesión.');
           return;
         }
 
-        this.modalPdfBank = docKey;
+        this.modalPdfBank = q.bank;
         this.modalPdfPage = q.page;
         this.modalScale = window.innerWidth < 640 ? 1.2 : 1.6;
 
@@ -3686,15 +2864,8 @@
       },
 
       async refreshModalCanvas() {
-        let label = 'Guevara';
-        if (this.modalPdfBank === 'PEDIATRIA') label = 'Pediatría';
-        else if (this.modalPdfBank !== 'GUEVARA') {
-          const rep = REPASO_SOURCES.find(r => r.key === this.modalPdfBank);
-          label = rep ? rep.unitName : 'Repaso';
-        }
-
         document.getElementById('pdfModalTitle').textContent =
-          `Lámina PDF (${label} — Página ${this.modalPdfPage})`;
+          `Lámina PDF (${this.modalPdfBank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'} — Página ${this.modalPdfPage})`;
         await this.renderPdfPageToCanvas(
           this.modalPdfBank,
           this.modalPdfPage,
@@ -3704,7 +2875,7 @@
       },
 
       async changeModalPage(delta) {
-        const doc = await this.ensurePdfDocLoaded(this.modalPdfBank);
+        const doc = this.pdfDocs[this.modalPdfBank];
         if (!doc) return;
         const nextP = this.modalPdfPage + delta;
         if (nextP >= 1 && nextP <= doc.numPages) {
@@ -3855,14 +3026,9 @@
       async forceReindexPDFs() {
         this.closeDataModal();
         await this.saveToIndexedDB('parsedQuestions', null);
-        await this.saveToIndexedDB('parsedRepasos_v3', null);
-        this.githubRootFiles = null;
-        this.baseQuestions = [];
-        this.repasoQuestions = [];
-        this.questions = [];
         document.getElementById('loaderBanner').classList.remove('hidden');
         document.getElementById('loaderSpinner').classList.remove('hidden');
-        await this.autoFetchAndParseMissingPDFs(false, false);
+        await this.autoFetchAndParsePDFs();
       },
 
       async clearAllProgress() {
