@@ -850,7 +850,6 @@
 
     /**
      * Catalog of the 8 Repaso & Reconstrucción PDFs placed in the root of the GitHub repository.
-     * (1.1.-Repaso módulo 1 prueba 70 preg N° 1.pdf is intentionally skipped because it is an unanswered duplicate).
      */
     const REPASO_SOURCES = [
       {
@@ -1040,16 +1039,14 @@
         this.setupLifecycleSyncListeners();
         this.startTimerLoop();
 
-        // Pull latest progress from Firebase Cloud on startup if configured
         if (this.isCloudConfigured()) {
           this.syncWithCloud(false);
         } else {
           this.updateCloudStatusUI('local', 'Solo Local');
         }
 
-        // 1. Load cached Pediatría + Guevara questions (preserves exact existing IDs)
         const cachedBase = await this.getFromIndexedDB('parsedQuestions');
-        const cachedRepasos = await this.getFromIndexedDB('parsedRepasos_v1');
+        const cachedRepasos = await this.getFromIndexedDB('parsedRepasos_v2');
 
         const hasBase = Array.isArray(cachedBase) && cachedBase.length > 100;
         const hasRepasos = Array.isArray(cachedRepasos) && cachedRepasos.length > 50;
@@ -1074,7 +1071,6 @@
           return;
         }
 
-        // 2. Fetch missing banks automatically from repository root
         await this.autoFetchAndParseMissingPDFs(hasBase, hasRepasos);
       },
 
@@ -1119,7 +1115,6 @@
           console.error('Error reading localStorage progress:', e);
         }
 
-        // Fallback/Merge with IndexedDB mirror in case iOS cleared localStorage
         const idbData = await this.getFromIndexedDB('progressMirror');
         if (localData && idbData) {
           this.progress = this.mergeProgressObjects(localData, idbData);
@@ -1148,10 +1143,8 @@
           console.error('Error saving progress to localStorage:', e);
         }
 
-        // Mirror to IndexedDB for extra durability on iOS/iPadOS
         this.saveToIndexedDB('progressMirror', this.progress);
 
-        // Schedule non-blocking Cloud Push
         if (triggerCloud && this.isCloudConfigured()) {
           this.scheduleCloudSync();
         }
@@ -1523,7 +1516,6 @@
       async ensurePdfDocLoaded(docKey) {
         if (this.pdfDocs[docKey]) return this.pdfDocs[docKey];
 
-        // Check IndexedDB buffer first
         let buf = await this.getFromIndexedDB(`pdfBuffer_${docKey}`);
         if (!buf) {
           let url = null;
@@ -1566,7 +1558,6 @@
       async autoFetchAndParseMissingPDFs(hasBase, hasRepasos) {
         let fetchedAny = false;
 
-        // 1. Base Banks (Pediatría + Guevara) if not cached
         if (!hasBase) {
           try {
             this.updateLoader(2, 'Descargando Banco_EUNACOM_Pediatria.pdf y Banco_EUNACOM_Guevara.pdf...');
@@ -1588,7 +1579,6 @@
           }
         }
 
-        // 2. Repaso & Reconstrucción PDFs (8 files in root)
         if (!hasRepasos) {
           const startPct = hasBase ? 5 : 55;
           const endPct = 98;
@@ -1619,7 +1609,7 @@
 
           if (parsedRepasos.length > 0) {
             this.repasoQuestions = parsedRepasos;
-            await this.saveToIndexedDB('parsedRepasos_v1', this.repasoQuestions);
+            await this.saveToIndexedDB('parsedRepasos_v2', this.repasoQuestions);
           }
         }
 
@@ -1655,12 +1645,10 @@
           const lower = file.name.toLowerCase();
           const buf = await file.arrayBuffer();
 
-          // Skip unanswered duplicate 1.1 if user selects all files at once
           if (lower.startsWith('1.1.-') || (lower.includes('repaso módulo 1') && !lower.includes('soluci'))) {
             continue;
           }
 
-          // Match against the 8 Repaso sources
           const matchedRepaso = REPASO_SOURCES.find(r =>
             r.filename.toLowerCase() === lower ||
             lower.includes(r.unitName.toLowerCase().slice(0, 18)) ||
@@ -1705,7 +1693,7 @@
           }
 
           this.repasoQuestions = Array.from(existingMap.values());
-          await this.saveToIndexedDB('parsedRepasos_v1', this.repasoQuestions);
+          await this.saveToIndexedDB('parsedRepasos_v2', this.repasoQuestions);
         }
 
         this.questions = [...this.baseQuestions, ...this.repasoQuestions];
@@ -1758,6 +1746,41 @@
         }
       },
 
+      groupItemsIntoLines(items) {
+        if (!items || items.length === 0) return [];
+        const sorted = [...items].sort((a, b) => {
+          const yDiff = b.transform[5] - a.transform[5];
+          if (Math.abs(yDiff) > 3.5) return yDiff;
+          return a.transform[4] - b.transform[4];
+        });
+
+        const lines = [];
+        let currentLineY = null;
+        let currentLineParts = [];
+
+        for (const it of sorted) {
+          const y = it.transform[5];
+          if (currentLineY === null || Math.abs(currentLineY - y) <= 3.5) {
+            currentLineParts.push(it.str);
+            if (currentLineY === null) currentLineY = y;
+          } else {
+            lines.push({
+              y: currentLineY,
+              text: currentLineParts.join(' ').replace(/\s+/g, ' ').trim()
+            });
+            currentLineParts = [it.str];
+            currentLineY = y;
+          }
+        }
+        if (currentLineParts.length > 0) {
+          lines.push({
+            y: currentLineY,
+            text: currentLineParts.join(' ').replace(/\s+/g, ' ').trim()
+          });
+        }
+        return lines;
+      },
+
       async extractPdfLinesWithPages(pdfDoc, startPage, onProgress) {
         const numPages = pdfDoc.numPages;
         const linesWithPages = [];
@@ -1766,34 +1789,9 @@
         for (let p = startPage; p <= numPages; p++) {
           const page = await pdfDoc.getPage(p);
           const textContent = await page.getTextContent();
-
           const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
-          items.sort((a, b) => {
-            const yDiff = b.transform[5] - a.transform[5];
-            if (Math.abs(yDiff) > 3.5) return yDiff;
-            return a.transform[4] - b.transform[4];
-          });
-
-          const pageLines = [];
-          let currentLineY = null;
-          let currentLineParts = [];
-
-          for (const it of items) {
-            const y = it.transform[5];
-            if (currentLineY === null || Math.abs(currentLineY - y) <= 3.5) {
-              currentLineParts.push(it.str);
-              if (currentLineY === null) currentLineY = y;
-            } else {
-              pageLines.push(currentLineParts.join(' ').replace(/\s+/g, ' ').trim());
-              currentLineParts = [it.str];
-              currentLineY = y;
-            }
-          }
-          if (currentLineParts.length > 0) {
-            pageLines.push(currentLineParts.join(' ').replace(/\s+/g, ' ').trim());
-          }
-
-          linesWithPages.push({ page: p, lines: pageLines });
+          const grouped = this.groupItemsIntoLines(items);
+          linesWithPages.push({ page: p, lines: grouped.map(l => l.text) });
 
           if (typeof page.cleanup === 'function') page.cleanup();
 
@@ -1842,7 +1840,7 @@
           }
         }
 
-        let state = 'IDLE'; // IDLE | STEM | OPTIONS | EXPLANATION
+        let state = 'IDLE';
         let curQ = null;
         let curOptKey = null;
 
@@ -1957,7 +1955,7 @@
         return extracted;
       },
 
-      /* ==================== MOODLE REPASO & RECONSTRUCCIÓN PARSER ==================== */
+      /* ==================== MOODLE REPASO & RECONSTRUCCIÓN TWO-COLUMN SPATIAL PARSER ==================== */
       normalizeForComparison(str) {
         return (str || '')
           .toLowerCase()
@@ -1974,13 +1972,11 @@
         const letters = Object.keys(optionsObj);
         if (letters.length === 0) return 'a';
 
-        // 1. Exact normalized match
         for (const l of letters) {
           const optNorm = this.normalizeForComparison(optionsObj[l]);
           if (optNorm && optNorm === targetNorm) return l;
         }
 
-        // 2. Substring match
         for (const l of letters) {
           const optNorm = this.normalizeForComparison(optionsObj[l]);
           if (optNorm && targetNorm && (optNorm.includes(targetNorm) || targetNorm.includes(optNorm))) {
@@ -1988,7 +1984,6 @@
           }
         }
 
-        // 3. Token overlap similarity
         const targetTokens = new Set(targetNorm.split(' ').filter(Boolean));
         let bestLetter = letters[0];
         let bestScore = -1;
@@ -2009,34 +2004,96 @@
         return bestLetter;
       },
 
-      async extractMoodleRepasoQuestions(pdfDoc, repasoMeta) {
-        const linesWithPages = await this.extractPdfLinesWithPages(pdfDoc, 1, null);
-        const flatLines = [];
+      /**
+       * Separates Moodle's two-column layout:
+       * Left sidebar column (Pregunta N, Sin contestar, Correcta, Incorrecta, Puntúa como, 1,00)
+       * vs. Right main content column (Stem, Options a-e, Explanation, La respuesta correcta es:).
+       * This prevents horizontal Y-merging of left metadata with the question stem!
+       */
+      async extractMoodleEventsSpatial(pdfDoc) {
+        const numPages = pdfDoc.numPages;
+        const events = []; // { page, y, type: 'Q_START' | 'CONTENT', qNum?, text }
+        let detectedSplitX = 115; // Default X boundary between left metadata box and right question column
 
-        const MOODLE_NOISE_REGEX = /^(?:Comenzado el|Estado|Finalizado|Tiempo empleado|Puntos|Calificaci[oó]n|Sin contestar|Correcta|Incorrecta|Parcialmente correcta|Se punt[uú]a|Punt[uú]a como|sobre 1,00|Seleccione una\s*:?|Actividad previa|Ir a\.\.\.|Siguiente actividad|Cap \d+ Internos|Avisos|Cuestionario \d+\.\d+|Resumen de alimentaci[oó]n|Reconstrucci[oó]n Eunacom agosto|Cap[ií]tulo \d+ - Prueba Final)/i;
+        for (let p = 1; p <= numPages; p++) {
+          const page = await pdfDoc.getPage(p);
+          const textContent = await page.getTextContent();
+          const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
 
-        for (const pageObj of linesWithPages) {
-          const p = pageObj.page;
-          for (const rawLine of pageObj.lines) {
-            const line = rawLine.trim();
-            if (!line) continue;
-            if (/^\d{1,3}$/.test(line)) continue;
-            if (/^(?:1,00|0,00|[xX✓✔☐\.\-]+|ill|11\.)$/.test(line)) continue;
-            if (MOODLE_NOISE_REGEX.test(line)) continue;
-            flatLines.push({ page: p, text: line });
+          // Calibrate X split on this page if "Pregunta N" is present
+          const pregItems = items.filter(it => /^Pregunta\s+\d{1,3}\b/i.test(it.str.trim()));
+          if (pregItems.length > 0) {
+            const leftX = Math.min(...pregItems.map(it => it.transform[4]));
+            // In Moodle print-to-PDF, the metadata box is ~85-95pt wide; content starts ~100pt to the right of leftX
+            detectedSplitX = leftX + 75;
           }
+
+          const leftItems = [];
+          const rightItems = [];
+
+          for (const it of items) {
+            const x = it.transform[4];
+            if (x < detectedSplitX) {
+              leftItems.push(it);
+            } else {
+              rightItems.push(it);
+            }
+          }
+
+          const leftLines = this.groupItemsIntoLines(leftItems);
+          const rightLines = this.groupItemsIntoLines(rightItems);
+
+          const pageEvents = [];
+
+          // Extract only "Pregunta N" anchors from the left column (discarding Sin contestar / Puntúa como / 1,00 / Marcar pregunta)
+          for (const l of leftLines) {
+            const m = l.text.match(/^Pregunta\s+(\d{1,3})\b/i);
+            if (m) {
+              pageEvents.push({
+                page: p,
+                y: l.y + 4, // Slightly above top line of stem so Q_START fires just before line 1
+                type: 'Q_START',
+                qNum: parseInt(m[1], 10),
+                text: `Pregunta ${m[1]}`
+              });
+            }
+          }
+
+          // Extract all content lines from the right column
+          for (const r of rightLines) {
+            pageEvents.push({
+              page: p,
+              y: r.y,
+              type: 'CONTENT',
+              text: r.text
+            });
+          }
+
+          // Sort top-to-bottom within the page
+          pageEvents.sort((a, b) => b.y - a.y);
+          events.push(...pageEvents);
+
+          if (typeof page.cleanup === 'function') page.cleanup();
+          if (p % 15 === 0) await new Promise(r => setTimeout(r, 1));
         }
+
+        return events;
+      },
+
+      async extractMoodleRepasoQuestions(pdfDoc, repasoMeta) {
+        const events = await this.extractMoodleEventsSpatial(pdfDoc);
+
+        const EXACT_NOISE_REGEX = /^(?:Comenzado el.*|Estado\s+Finalizado|Finalizado.*|Tiempo empleado.*|Puntos\s+[\d,\.\/]+|Calificaci[oó]n\s+[\d,\.]+.*|Sin contestar|Correcta|Incorrecta|Parcialmente correcta|Se punt[uú]a.*|Punt[uú]a como|sobre 1,00|1,00|0,00|Seleccione una\s*:?|Actividad previa|Ir a\.\.\.|Siguiente actividad|Cap \d+ Internos.*|Avisos|Cuestionario \d+\.\d+|Resumen de alimentaci[oó]n|Reconstrucci[oó]n Eunacom agosto.*|Cap[ií]tulo \d+ - Prueba Final.*|Prueba de 70 preguntas.*|\(2\) WhatsApp|e\.doctorguevara\.cl.*|a Principal Área personal.*|Tiempo restante.*|Marcar|pregunta|Marcar pregunta)$/i;
 
         const extracted = [];
         let state = 'IDLE'; // IDLE | STEM | OPTIONS | EXPLANATION | ANSWER_TEXT
         let curQ = null;
         let curOptKey = null;
-        let pendingOrphanOptionLine = '';
+        let emptyOptQueue = []; // Queue of letters whose text wrapped onto subsequent lines
 
         const finalizeMoodleQuestion = () => {
           if (!curQ) return;
 
-          // Clean trailing 'x' or '✔' from options (artifacts from user attempt markers in Repaso M1)
           for (const k of Object.keys(curQ.options)) {
             curQ.options[k] = curQ.options[k].replace(/\s*[xX✓✔]+$/, '').trim();
           }
@@ -2054,38 +2111,42 @@
 
           curQ = null;
           curOptKey = null;
-          pendingOrphanOptionLine = '';
+          emptyOptQueue = [];
         };
 
-        for (let i = 0; i < flatLines.length; i++) {
-          const { page, text } = flatLines[i];
+        for (let i = 0; i < events.length; i++) {
+          const ev = events[i];
 
-          // Detect start of a new Moodle question: "Pregunta 1", "Pregunta 2", etc.
-          const qMatch = text.match(/^Pregunta\s+(\d{1,3})\b(.*)$/i);
-          if (qMatch) {
+          if (ev.type === 'Q_START') {
             if (curQ) finalizeMoodleQuestion();
             curQ = {
               bank: 'REPASO',
               pdfKey: repasoMeta.key,
               unit: repasoMeta.unitName,
               subtopic: repasoMeta.subtopic,
-              num: parseInt(qMatch[1], 10),
-              page: page,
-              stem: (qMatch[2] || '').trim(),
+              num: ev.qNum,
+              page: ev.page,
+              stem: '',
               options: {},
               answer: '',
               answerText: '',
               isProposed: false,
               explanation: '',
-              source: `${repasoMeta.unitName} · P${qMatch[1]}`
+              source: `${repasoMeta.unitName} · P${ev.qNum}`
             };
             state = 'STEM';
             curOptKey = null;
-            pendingOrphanOptionLine = '';
+            emptyOptQueue = [];
             continue;
           }
 
           if (!curQ) continue;
+
+          const text = ev.text.trim();
+          if (!text) continue;
+          if (/^\d{1,3}$/.test(text)) continue; // Standalone page number
+          if (/^[xX✓✔☐\.\-]+$/.test(text)) continue; // Standalone OCR checkmark/radio glyph
+          if (EXACT_NOISE_REGEX.test(text)) continue;
 
           // Detect "La respuesta correcta es: ..."
           const ansLineMatch = text.match(/^La respuesta correcta es\s*:\s*(.*)$/i);
@@ -2096,19 +2157,20 @@
           }
 
           if (state === 'ANSWER_TEXT') {
-            // Append wrapped answer text lines until next Pregunta
             curQ.answerText += (curQ.answerText ? ' ' : '') + text;
             continue;
           }
 
-          // Match Moodle option line (handles "a. Text", "Oa. Text", "O b. Text", "Oc.", " . Text", etc.)
+          // Match option marker ("a.", "Oa.", "O b.", "Oc.", etc.)
           const optMatch = text.match(/^(?:[O0o☐✓✔xX\s]{0,3})?([a-eA-E])[\.\)]\s*(.*)$/);
           const bulletOptMatch = (state === 'OPTIONS' && !optMatch) ? text.match(/^[•\-\.]\s+(.+)$/) : null;
 
           if (state === 'STEM') {
             if (optMatch && optMatch[1].toLowerCase() === 'a') {
+              const val = (optMatch[2] || '').trim();
               curOptKey = 'a';
-              curQ.options['a'] = (optMatch[2] || '').trim();
+              curQ.options['a'] = val;
+              if (!val) emptyOptQueue.push('a');
               state = 'OPTIONS';
             } else {
               curQ.stem += (curQ.stem ? '\n' : '') + text;
@@ -2119,33 +2181,33 @@
           if (state === 'OPTIONS') {
             if (optMatch) {
               const letter = optMatch[1].toLowerCase();
-              let val = (optMatch[2] || '').trim();
-              if (!val && pendingOrphanOptionLine) {
-                val = pendingOrphanOptionLine;
-                pendingOrphanOptionLine = '';
-              }
+              const val = (optMatch[2] || '').trim();
               curOptKey = letter;
               curQ.options[letter] = val;
+              if (!val && !emptyOptQueue.includes(letter)) {
+                emptyOptQueue.push(letter);
+              }
               continue;
             }
 
-            // Handle occasional bulleted option in Moodle PDF (e.g. " . Iniciar azitromicina oral")
             if (bulletOptMatch && curOptKey) {
               const nextLetterCode = curOptKey.charCodeAt(0) + 1;
-              if (nextLetterCode <= 101) { // 'e'
+              if (nextLetterCode <= 101) {
                 curOptKey = String.fromCharCode(nextLetterCode);
                 curQ.options[curOptKey] = bulletOptMatch[1].trim();
                 continue;
               }
             }
 
-            // If current option has empty text (e.g. "Oc." appeared before its text), fill it now
-            if (curOptKey && !curQ.options[curOptKey]) {
-              curQ.options[curOptKey] = text;
+            // Fill queued empty option letters in FIFO order (handles "b.", "c.", "Od." stacked before their 3 texts)
+            if (emptyOptQueue.length > 0) {
+              const targetLetter = emptyOptQueue.shift();
+              curQ.options[targetLetter] = text;
+              curOptKey = targetLetter;
               continue;
             }
 
-            // Check if we reached the explanation block after option 'e'
+            // After option 'e' has text, check if this line is wrapped option 'e' text or the start of the explanation
             if (curOptKey === 'e') {
               const curOptVal = (curQ.options['e'] || '').trim();
               const startsLowerOrDash = /^[a-záéíóúñ0-9,\(\-]/.test(text);
@@ -2160,15 +2222,9 @@
               continue;
             }
 
-            // Before option 'e', check if this line is a continuation of current option or an orphan line before "Oc."
+            // Otherwise append wrapped continuation line to current option
             if (curOptKey) {
-              const nextLine = flatLines[i + 1]?.text || '';
-              const nextIsEmptyLetter = /^(?:[O0o☐✓✔xX\s]{0,3})?[a-eA-E][\.\)]\s*$/.test(nextLine);
-              if (nextIsEmptyLetter) {
-                pendingOrphanOptionLine = text;
-              } else {
-                curQ.options[curOptKey] += ' ' + text;
-              }
+              curQ.options[curOptKey] += ' ' + text;
             }
             continue;
           }
@@ -2185,19 +2241,16 @@
       buildUnitsIndex() {
         this.unitsMap.clear();
 
-        // 1. Pediatría (14 units)
         for (const ch of PEDIATRIA_CHAPTERS) {
           const uid = `PEDIATRIA__${ch.name}`;
           this.unitsMap.set(uid, { id: uid, bank: 'PEDIATRIA', name: ch.name, questions: [] });
         }
 
-        // 2. Guevara (19 units)
         for (const ch of GUEVARA_CHAPTERS) {
           const uid = `GUEVARA__${ch.name}`;
           this.unitsMap.set(uid, { id: uid, bank: 'GUEVARA', name: ch.name, questions: [] });
         }
 
-        // 3. Repasos & Reconstrucciones (8 units)
         for (const rep of REPASO_SOURCES) {
           const uid = `REPASO__${rep.unitName}`;
           this.unitsMap.set(uid, {
@@ -2366,7 +2419,7 @@
         container.innerHTML = '';
 
         for (const unit of this.unitsMap.values()) {
-          if (unit.bank === 'REPASO') continue; // Repasos live in their dedicated tab
+          if (unit.bank === 'REPASO') continue;
           if (unit.questions.length === 0) continue;
           if (this.bankFilter !== 'ALL' && unit.bank !== this.bankFilter) continue;
           if (query && !unit.name.toLowerCase().includes(query)) continue;
@@ -3712,7 +3765,7 @@
       async forceReindexPDFs() {
         this.closeDataModal();
         await this.saveToIndexedDB('parsedQuestions', null);
-        await this.saveToIndexedDB('parsedRepasos_v1', null);
+        await this.saveToIndexedDB('parsedRepasos_v2', null);
         this.baseQuestions = [];
         this.repasoQuestions = [];
         this.questions = [];
