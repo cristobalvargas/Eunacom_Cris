@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#0f172a" />
-  <title>EUNACOM Pro — Simulador Clínico Interactivo (Guevara & Pediatría)</title>
+  <title>EUNACOM Pro — Simulador Clínico Interactivo (Guevara, Pediatría & Repasos)</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -87,7 +87,7 @@
               Cargando...
             </span>
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Bancos Guevara &amp; Pediatría</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">Bancos Guevara, Pediatría &amp; Repasos</p>
         </div>
       </button>
 
@@ -161,7 +161,7 @@
       <!-- Manual Fallback Box (shown if fetch fails on file:// protocol) -->
       <div id="manualFallbackBox" class="hidden mt-3 pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <p class="text-xs text-amber-300 leading-relaxed">
-          ⚠️ Si abriste <code class="bg-slate-800 px-1 py-0.5 rounded">index.html</code> con doble clic local (<code class="bg-slate-800 px-1 py-0.5 rounded">file://</code>), el navegador bloquea <code class="bg-slate-800 px-1 py-0.5 rounded">fetch</code> por seguridad CORS. En <strong>GitHub Pages</strong> carga automático; aquí puedes seleccionar ambos PDFs manualmente una sola vez (quedarán guardados en caché):
+          ⚠️ Si abriste <code class="bg-slate-800 px-1 py-0.5 rounded">index.html</code> con doble clic local (<code class="bg-slate-800 px-1 py-0.5 rounded">file://</code>), el navegador bloquea <code class="bg-slate-800 px-1 py-0.5 rounded">fetch</code> por seguridad CORS. En <strong>GitHub Pages</strong> carga automático; aquí puedes seleccionar los PDFs manualmente una sola vez (quedarán guardados en caché):
         </p>
         <label class="shrink-0 cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +234,7 @@
 
       <!-- Main Navigation Tabs (Portada) -->
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-3">
-        <div class="inline-flex flex-wrap p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800">
+        <div class="inline-flex flex-wrap p-1 rounded-xl bg-slate-200/70 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-800 gap-0.5">
           <button onclick="app.switchMainTab('units')" id="tabBtnUnits" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm">
             📊 Unidades y Sets de 20
           </button>
@@ -244,17 +244,20 @@
           <button onclick="app.switchMainTab('random')" id="tabBtnRandom" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
             🎲 Modo Random Inteligente
           </button>
+          <button onclick="app.switchMainTab('repasos')" id="tabBtnRepasos" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+            📚 Repasos <span id="tabRepasosCountPill" class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-300">0</span>
+          </button>
         </div>
 
         <!-- Bank Filter Pills -->
         <div id="unitFilterControls" class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div class="inline-flex rounded-xl bg-slate-100 dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800">
+          <div id="bankFilterPillsBox" class="inline-flex rounded-xl bg-slate-100 dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800">
             <button onclick="app.setBankFilter('ALL')" id="filterBankALL" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white">Todos</button>
             <button onclick="app.setBankFilter('PEDIATRIA')" id="filterBankPEDIATRIA" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Pediatría (14)</button>
             <button onclick="app.setBankFilter('GUEVARA')" id="filterBankGUEVARA" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400">Guevara (19)</button>
           </div>
           <div class="relative flex-1 sm:w-56">
-            <input type="text" id="unitSearchInput" oninput="app.renderUnitsGrid(); app.renderSavedByChapterTab();" placeholder="Buscar unidad o tema..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500" />
+            <input type="text" id="unitSearchInput" oninput="app.renderUnitsGrid(); app.renderSavedByChapterTab(); app.renderRepasosTab();" placeholder="Buscar unidad, prueba o tema..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:outline-none focus:border-emerald-500" />
             <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -277,7 +280,7 @@
               <span>⭐ Tus Preguntas Guardadas por Capítulo</span>
             </h2>
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Todas las preguntas que marcaste con el botón <strong>⭐ Guardar</strong> durante tus ensayos, organizadas por especialidad (independiente de si estaban buenas o malas).
+              Todas las preguntas que marcaste con el botón <strong>⭐ Guardar</strong> durante tus ensayos o repasos, organizadas por capítulo (independiente de si estaban buenas o malas).
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
@@ -311,14 +314,15 @@
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">1. Banco de Origen</label>
               <select id="randomBankSelect" onchange="app.populateRandomUnitsDropdown()" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
-                <option value="ALL">Ambos Bancos (Pediatría + Guevara)</option>
+                <option value="ALL">Todos los Bancos (Pediatría + Guevara + Repasos)</option>
                 <option value="PEDIATRIA">Solo Banco EUNACOM Pediatría</option>
                 <option value="GUEVARA">Solo Banco EUNACOM Guevara</option>
+                <option value="REPASO">Solo Repasos y Reconstrucciones (8 pruebas)</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">2. Especialidad / Unidad</label>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">2. Especialidad / Unidad / Prueba</label>
               <select id="randomUnitSelect" class="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-emerald-500">
                 <option value="ALL">Todas las unidades del banco seleccionado</option>
               </select>
@@ -357,17 +361,55 @@
           </button>
         </div>
       </div>
+
+      <!-- TAB 4 CONTENT: REPASOS Y RECONSTRUCCIONES EUNACOM -->
+      <div id="tabContentRepasos" class="hidden space-y-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-teal-500/30 p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-teal-500/15 text-teal-600 dark:text-teal-300 border border-teal-500/30">
+                📚 REPASOS &amp; RECONSTRUCCIONES
+              </span>
+              <span id="repasosSummaryStats" class="text-xs font-bold text-slate-600 dark:text-slate-300">
+                0 / 0 preg · 0% acierto
+              </span>
+            </div>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+              Pruebas Finales de Módulo y Reconstrucciones Oficiales Dr. Guevara
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Rinde cada prueba completa (70 o 90 preguntas), divídela en sets de 20 o practica tus falladas y guardadas ⭐ sincronizadas en la nube.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button onclick="app.startRepasosRandomQuiz(20)" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-sm transition">
+              🎲 20 Random de Repasos
+            </button>
+            <button onclick="app.startRepasosEverFailedQuiz()" id="repasosEverFailedBtn" class="px-3.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition">
+              📌 Falladas Repasos (0)
+            </button>
+            <button onclick="app.startRepasosBookmarkedQuiz()" id="repasosBookmarkedBtn" class="px-3.5 py-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 text-xs font-bold transition">
+              ⭐ Guardadas Repasos (0)
+            </button>
+          </div>
+        </div>
+
+        <div id="repasosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamically populated repaso cards -->
+        </div>
+      </div>
     </section>
 
     <!-- ==================== VIEW 2: UNIT SETS OF 20 MODAL / DRAWER ==================== -->
     <section id="setsView" class="hidden space-y-5 animate-fade">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
-          <button onclick="app.showDashboard()" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline mb-1">
+          <button id="setsViewBackBtn" onclick="app.returnFromSetsView()" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline mb-1">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            Volver a Progreso por Unidades
+            <span id="setsViewBackLabel">Volver a Progreso por Unidades</span>
           </button>
           <div class="flex flex-wrap items-center gap-2">
             <span id="setsViewBankBadge" class="px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/10 text-sky-400">BANCO</span>
@@ -377,6 +419,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+          <button id="setsViewFullExamBtn" class="hidden px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold shadow-sm transition">
+            📝 Rendir Prueba Completa
+          </button>
           <button id="setsViewRandomBtn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-sm transition">
             🎲 20 Random (Sin repetir acertadas)
           </button>
@@ -539,15 +584,15 @@
           </div>
         </div>
 
-        <!-- Right Sidebar on Desktop: Question Navigator 1..20 (4 cols on lg) -->
+        <!-- Right Sidebar on Desktop: Question Navigator 1..N (4 cols on lg) -->
         <div class="hidden lg:block lg:col-span-4 sticky top-20 space-y-4">
           <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
             <div class="flex items-center justify-between mb-3">
               <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Navegador del Set</h3>
               <span id="navProgressTextDesktop" class="text-xs font-semibold text-slate-600 dark:text-slate-300">0/20</span>
             </div>
-            <div id="questionGridDesktop" class="grid grid-cols-5 gap-2">
-              <!-- 1..20 buttons -->
+            <div id="questionGridDesktop" class="grid grid-cols-5 gap-2 max-h-[60vh] overflow-y-auto pr-1">
+              <!-- 1..N buttons -->
             </div>
             <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
               <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Historial fallo</span>
@@ -580,7 +625,7 @@
         </div>
       </div>
 
-      <!-- MOBILE BOTTOM SHEET FOR QUESTION GRID (1..20) -->
+      <!-- MOBILE BOTTOM SHEET FOR QUESTION GRID -->
       <div id="mobileNavSheet" class="fixed inset-0 z-40 hidden">
         <div onclick="app.toggleMobileNavSheet(false)" class="absolute inset-0 bg-black/60 backdrop-blur-xs"></div>
         <div class="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl p-5 safe-bottom border-t border-slate-200 dark:border-slate-800 max-h-[75vh] overflow-y-auto">
@@ -756,12 +801,7 @@
     // Configure PDF.js worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    /**
-     * OPCIONAL: Si pegas tu URL de Firebase Realtime Database aquí abajo antes de subir el index.html a GitHub,
-     * todos tus dispositivos (iPhone, iPad, Mac) se conectarán automáticamente sin tener que escribirla en pantalla.
-     * Ejemplo: const DEFAULT_FIREBASE_URL = 'https://eunacom-pro-default-rtdb.firebaseio.com/';
-     */
-    const DEFAULT_FIREBASE_URL = 'https://euncompro-default-rtdb.firebaseio.com/'; // <-- PEGA AQUÍ TU URL DE FIREBASE SI QUIERES QUE CARGUE AUTOMÁTICO
+    const DEFAULT_FIREBASE_URL = 'https://euncompro-default-rtdb.firebaseio.com/';
     const DEFAULT_USER_SYNC_KEY = 'cristobal_eunacom';
 
     /**
@@ -808,7 +848,70 @@
       { name: "Intoxicaciones y misceláneos", start: 137, end: 140 }
     ];
 
-    const IMAGE_CUE_REGEX = /(se muestra a continuaci[oó]n|siguiente electrocardiograma|siguiente trazado|siguiente imagen|mostrando lo siguiente|cardioteca\.com|cardiomedica\.es|researchgate\.net|blogspot\.com)/i;
+    /**
+     * Catalog of the 8 Repaso & Reconstrucción PDFs placed in the root of the GitHub repository.
+     * (1.1.-Repaso módulo 1 prueba 70 preg N° 1.pdf is intentionally skipped because it is an unanswered duplicate).
+     */
+    const REPASO_SOURCES = [
+      {
+        key: 'REPASO_M1_P1',
+        filename: '1.-Repaso módulo 1 prueba 70 preg N° 1 SOLUCIÓN.pdf',
+        unitName: 'Repaso Módulo 1 — Prueba Final 1',
+        category: 'MÓDULO 1',
+        subtopic: 'Medicina Interna (70 preg)'
+      },
+      {
+        key: 'REPASO_C2_P1',
+        filename: '2.-Capítulo 2 - Prueba Final 1_ Revisión del intento.pdf',
+        unitName: 'Capítulo 2 — Prueba Final 1',
+        category: 'CAPÍTULO 2',
+        subtopic: 'Especialidades, Cirugía y Salud Pública (70 preg)'
+      },
+      {
+        key: 'REPASO_C3_P1',
+        filename: 'Capítulo 3 - Prueba Final 1_ Revisión del intento _ Dr. Guevara.pdf',
+        unitName: 'Capítulo 3 — Prueba Final 1',
+        category: 'CAPÍTULO 3',
+        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
+      },
+      {
+        key: 'REPASO_C3_P2',
+        filename: 'Capítulo 3 - Prueba Final 2_ Revisión del intento _ Dr. Guevara.pdf',
+        unitName: 'Capítulo 3 — Prueba Final 2',
+        category: 'CAPÍTULO 3',
+        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
+      },
+      {
+        key: 'REPASO_C3_P3',
+        filename: 'Capítulo 3 - Prueba Final 3_ Revisión del intento _ Dr. Guevara.pdf',
+        unitName: 'Capítulo 3 — Prueba Final 3',
+        category: 'CAPÍTULO 3',
+        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
+      },
+      {
+        key: 'REPASO_C3_P4',
+        filename: 'Capítulo 3 - Prueba Final 4_ Revisión del intento _ Dr. Guevara.pdf',
+        unitName: 'Capítulo 3 — Prueba Final 4',
+        category: 'CAPÍTULO 3',
+        subtopic: 'Pediatría y Gineco-Obstetricia (70 preg)'
+      },
+      {
+        key: 'REPASO_REC_2021_1',
+        filename: '3.-Reconstrucción Eunacom agosto 2021 (Parte I)_ Revisión del intento _ Dr. Guevara.pdf',
+        unitName: 'Reconstrucción EUNACOM Ago 2021 (Parte I)',
+        category: 'RECONSTRUCCIÓN',
+        subtopic: 'Ensayo Oficial Reconstruido (90 preg)'
+      },
+      {
+        key: 'REPASO_REC_2021_2',
+        filename: '3.-Reconstrucción Eunacom agosto 2021 (Parte II)_ Revisión del intento _ Dr. Guevara.pdf',
+        unitName: 'Reconstrucción EUNACOM Ago 2021 (Parte II)',
+        category: 'RECONSTRUCCIÓN',
+        subtopic: 'Ensayo Oficial Reconstruido (90 preg)'
+      }
+    ];
+
+    const IMAGE_CUE_REGEX = /(se muestra a continuaci[oó]n|se muestra m[aá]s abajo|muestra lo siguiente|siguiente electrocardiograma|electrocardiograma es el siguiente|siguiente trazado|siguiente imagen|siguiente fotograf[ií]a|siguiente curva de crecimiento|mostrando lo siguiente|\(ver imagen|\(fuente\s*:|cardioteca\.com|cardiomedica\.es|researchgate\.net|blogspot\.com|radiopaedia|cardioparamap)/i;
 
     const STORAGE_KEY_PROGRESS = 'eunacom_pro_progress_v1';
     const STORAGE_KEY_THEME = 'eunacom_pro_theme_v1';
@@ -817,12 +920,14 @@
     const IDB_STORE = 'questionBankStore';
 
     const app = {
-      questions: [],
-      unitsMap: new Map(), // unitId -> { id, bank, name, questions: [] }
+      baseQuestions: [],   // Pediatría + Guevara (exact original IDs)
+      repasoQuestions: [], // 8 Repaso & Reconstrucción PDFs
+      questions: [],       // Combined array
+      unitsMap: new Map(), // unitId -> { id, bank, name, category, subtopic, questions: [] }
       pdfDocs: { PEDIATRIA: null, GUEVARA: null },
       progress: {
         answers: {},  // qId -> { selected: 'a'|null, correct: true|false, everFailed: bool, failCount: num, bookmarked: bool, bookmarkUpdatedAt: num, timestamp: num }
-        deleted: {},  // qId -> timestamp (tombstones so intentional retries sync cleanly across devices)
+        deleted: {},  // qId -> timestamp
         updatedAt: 0
       },
       cloudConfig: {
@@ -834,6 +939,7 @@
 
       bankFilter: 'ALL',
       randomCount: 20,
+      lastMainTab: 'units',
 
       // Active Quiz State
       activeUnitId: null,
@@ -941,24 +1047,35 @@
           this.updateCloudStatusUI('local', 'Solo Local');
         }
 
-        // 1. Check IndexedDB cached parsed questions first for instant startup
-        const cached = await this.getFromIndexedDB('parsedQuestions');
-        if (cached && Array.isArray(cached) && cached.length > 100) {
-          this.questions = cached;
+        // 1. Load cached Pediatría + Guevara questions (preserves exact existing IDs)
+        const cachedBase = await this.getFromIndexedDB('parsedQuestions');
+        const cachedRepasos = await this.getFromIndexedDB('parsedRepasos_v1');
+
+        const hasBase = Array.isArray(cachedBase) && cachedBase.length > 100;
+        const hasRepasos = Array.isArray(cachedRepasos) && cachedRepasos.length > 50;
+
+        if (hasBase) {
+          this.baseQuestions = cachedBase;
+        }
+        if (hasRepasos) {
+          this.repasoQuestions = cachedRepasos;
+        }
+
+        if (hasBase && hasRepasos) {
+          this.questions = [...this.baseQuestions, ...this.repasoQuestions];
           this.buildUnitsIndex();
-          this.updateLoader(100, `Banco cargado instantáneamente desde caché (${this.questions.length} preguntas).`);
+          this.updateLoader(100, `Bancos y Repasos cargados desde caché (${this.questions.length} preguntas).`);
           setTimeout(() => {
             document.getElementById('loaderBanner').classList.add('hidden');
-          }, 900);
+          }, 800);
           this.updateBadge(`${this.questions.length} preg listas`);
           this.renderDashboard();
-          // Load PDF binaries in background for on-demand clinical image rendering
           this.loadPdfBinariesSilently();
           return;
         }
 
-        // 2. Otherwise fetch and parse both PDFs automatically from repository root
-        await this.autoFetchAndParsePDFs();
+        // 2. Fetch missing banks automatically from repository root
+        await this.autoFetchAndParseMissingPDFs(hasBase, hasRepasos);
       },
 
       /* ==================== PERSISTENT STORAGE & DUAL BACKUP (LOCALSTORAGE + INDEXEDDB) ==================== */
@@ -967,7 +1084,6 @@
           if (navigator.storage && navigator.storage.persist) {
             await navigator.storage.persist();
           }
-          // Test if localStorage is writable (detects strict iOS Private Mode blocks)
           const testKey = '__eunacom_test__';
           localStorage.setItem(testKey, '1');
           localStorage.removeItem(testKey);
@@ -1069,7 +1185,6 @@
       getFirebaseEndpointUrl() {
         if (!this.isCloudConfigured()) return null;
         let base = this.cloudConfig.dbUrl.trim().replace(/\/+$/, '');
-        // Remove accidental .json if user pasted full path
         base = base.replace(/\/eunacom_sync\/.*$/, '').replace(/\.json$/, '');
         const cleanUser = (this.cloudConfig.userKey || DEFAULT_USER_SYNC_KEY).replace(/[^a-zA-Z0-9_-]/g, '_');
         return `${base}/eunacom_sync/${cleanUser}.json`;
@@ -1116,11 +1231,6 @@
         }
       },
 
-      /**
-       * Smart Question-Level Timestamp Merge:
-       * Combines answers from Mobile and Tablet so neither device overwrites newer answers from the other,
-       * while preserving `everFailed`, `failCount`, and `bookmarked` status across devices.
-       */
       mergeProgressObjects(progA, progB) {
         const ansA = (progA && progA.answers) ? progA.answers : {};
         const ansB = (progB && progB.answers) ? progB.answers : {};
@@ -1146,7 +1256,6 @@
           const latestAnsTs = Math.max(tsA, tsB);
           const delTs = mergedDeleted[qId] || 0;
 
-          // Preserve historical failure status across both records
           const wasEverFailed = Boolean(
             (a && (a.everFailed || (a.selected && a.correct === false))) ||
             (b && (b.everFailed || (b.selected && b.correct === false)))
@@ -1156,7 +1265,6 @@
             b ? (b.failCount || ((b.selected && b.correct === false) ? 1 : 0)) : 0
           );
 
-          // Resolve bookmark status using most recent bookmark action or latest record
           const bmTsA = a ? (a.bookmarkUpdatedAt || (a.bookmarked ? tsA : 0)) : 0;
           const bmTsB = b ? (b.bookmarkUpdatedAt || (b.bookmarked ? tsB : 0)) : 0;
           let isBookmarked = false;
@@ -1217,20 +1325,16 @@
         this.updateCloudStatusUI('syncing');
 
         try {
-          // 1. Fetch remote progress from Firebase
           const getRes = await fetch(endpoint, { cache: 'no-store' });
           if (!getRes.ok) throw new Error(`HTTP ${getRes.status}`);
           const remoteData = await getRes.json();
 
-          // 2. Smart merge local & remote
           if (remoteData && (remoteData.answers || remoteData.deleted)) {
             this.progress = this.mergeProgressObjects(this.progress, remoteData);
           }
 
-          // 3. Save merged state locally (without re-triggering loop)
           this.saveProgressToStorage(false);
 
-          // 4. Push merged state back to Firebase
           const putRes = await fetch(endpoint, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -1240,7 +1344,6 @@
 
           this.updateCloudStatusUI('synced', '☁️ Nube OK');
 
-          // Refresh active view so newly synced answers reflect immediately
           if (!document.getElementById('dashboardView').classList.contains('hidden')) {
             this.renderDashboard();
           } else if (!document.getElementById('setsView').classList.contains('hidden') && this.activeUnitId) {
@@ -1311,7 +1414,6 @@
       },
 
       setupLifecycleSyncListeners() {
-        // Automatically pull/push whenever the user switches between iPhone and iPad or returns to Safari
         document.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'visible' && this.isCloudConfigured()) {
             this.syncWithCloud(false);
@@ -1329,11 +1431,6 @@
         });
       },
 
-      /**
-       * Reinicia la respuesta actual de la pregunta para poder volver a contestarla en un ensayo,
-       * pero CONSERVA `everFailed`, `failCount` y `bookmarked` dentro de `this.progress.answers[qId]`
-       * para que nunca se pierdan del historial ni de las preguntas guardadas ⭐.
-       */
       markQuestionResetForRetry(qId) {
         const prev = this.progress.answers[qId];
         const hadFailed = Boolean(prev && (prev.everFailed === true || (prev.selected && prev.correct === false)));
@@ -1423,57 +1520,121 @@
         }
       },
 
-      async loadPdfBinariesSilently() {
-        try {
-          const [pedBuf, guevBuf] = await Promise.all([
-            this.getFromIndexedDB('pdfBuffer_PEDIATRIA'),
-            this.getFromIndexedDB('pdfBuffer_GUEVARA')
-          ]);
-          if (pedBuf) {
-            this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: pedBuf.slice(0) }).promise;
-          } else {
-            const r1 = await fetch('./Banco_EUNACOM_Pediatria.pdf');
-            if (r1.ok) {
-              const b1 = await r1.arrayBuffer();
-              await this.saveToIndexedDB('pdfBuffer_PEDIATRIA', b1);
-              this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: b1.slice(0) }).promise;
-            }
+      async ensurePdfDocLoaded(docKey) {
+        if (this.pdfDocs[docKey]) return this.pdfDocs[docKey];
+
+        // Check IndexedDB buffer first
+        let buf = await this.getFromIndexedDB(`pdfBuffer_${docKey}`);
+        if (!buf) {
+          let url = null;
+          if (docKey === 'PEDIATRIA') url = './Banco_EUNACOM_Pediatria.pdf';
+          else if (docKey === 'GUEVARA') url = './Banco_EUNACOM_Guevara.pdf';
+          else {
+            const repMeta = REPASO_SOURCES.find(r => r.key === docKey);
+            if (repMeta) url = `./${encodeURIComponent(repMeta.filename)}`;
           }
-          if (guevBuf) {
-            this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: guevBuf.slice(0) }).promise;
-          } else {
-            const r2 = await fetch('./Banco_EUNACOM_Guevara.pdf');
-            if (r2.ok) {
-              const b2 = await r2.arrayBuffer();
-              await this.saveToIndexedDB('pdfBuffer_GUEVARA', b2);
-              this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: b2.slice(0) }).promise;
-            }
+          if (url) {
+            try {
+              const res = await fetch(url);
+              if (res.ok) {
+                buf = await res.arrayBuffer();
+                await this.saveToIndexedDB(`pdfBuffer_${docKey}`, buf);
+              }
+            } catch (e) {}
           }
-        } catch (e) {
-          // Silent background load
         }
+
+        if (buf) {
+          try {
+            this.pdfDocs[docKey] = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+            return this.pdfDocs[docKey];
+          } catch (e) {}
+        }
+        return null;
       },
 
-      async autoFetchAndParsePDFs() {
+      async loadPdfBinariesSilently() {
         try {
-          this.updateLoader(2, 'Descargando Banco_EUNACOM_Pediatria.pdf y Banco_EUNACOM_Guevara.pdf...');
-          const [resPed, resGuev] = await Promise.all([
-            fetch('./Banco_EUNACOM_Pediatria.pdf'),
-            fetch('./Banco_EUNACOM_Guevara.pdf')
+          await Promise.all([
+            this.ensurePdfDocLoaded('PEDIATRIA'),
+            this.ensurePdfDocLoaded('GUEVARA'),
+            ...REPASO_SOURCES.map(r => this.ensurePdfDocLoaded(r.key))
           ]);
+        } catch (e) {}
+      },
 
-          if (!resPed.ok || !resGuev.ok) {
-            throw new Error('No se pudieron obtener los PDFs vía fetch.');
+      async autoFetchAndParseMissingPDFs(hasBase, hasRepasos) {
+        let fetchedAny = false;
+
+        // 1. Base Banks (Pediatría + Guevara) if not cached
+        if (!hasBase) {
+          try {
+            this.updateLoader(2, 'Descargando Banco_EUNACOM_Pediatria.pdf y Banco_EUNACOM_Guevara.pdf...');
+            const [resPed, resGuev] = await Promise.all([
+              fetch('./Banco_EUNACOM_Pediatria.pdf'),
+              fetch('./Banco_EUNACOM_Guevara.pdf')
+            ]);
+
+            if (resPed.ok && resGuev.ok) {
+              const [bufPed, bufGuev] = await Promise.all([
+                resPed.arrayBuffer(),
+                resGuev.arrayBuffer()
+              ]);
+              await this.processBasePdfBuffers(bufPed, bufGuev, 0, 55);
+              fetchedAny = true;
+            }
+          } catch (err) {
+            console.warn('Fetch automático de bancos base no disponible:', err);
+          }
+        }
+
+        // 2. Repaso & Reconstrucción PDFs (8 files in root)
+        if (!hasRepasos) {
+          const startPct = hasBase ? 5 : 55;
+          const endPct = 98;
+          const step = (endPct - startPct) / REPASO_SOURCES.length;
+          const parsedRepasos = [];
+
+          for (let idx = 0; idx < REPASO_SOURCES.length; idx++) {
+            const src = REPASO_SOURCES[idx];
+            const curPct = startPct + idx * step;
+            this.updateLoader(curPct, `Cargando Repaso (${idx + 1}/${REPASO_SOURCES.length}): ${src.unitName}...`);
+
+            try {
+              const res = await fetch(`./${encodeURIComponent(src.filename)}`);
+              if (!res.ok) continue;
+              const buf = await res.arrayBuffer();
+              await this.saveToIndexedDB(`pdfBuffer_${src.key}`, buf);
+              this.pdfDocs[src.key] = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+
+              const qs = await this.extractMoodleRepasoQuestions(this.pdfDocs[src.key], src);
+              if (qs.length > 0) {
+                parsedRepasos.push(...qs);
+                fetchedAny = true;
+              }
+            } catch (e) {
+              console.warn(`No se pudo cargar ${src.filename}:`, e);
+            }
           }
 
-          const [bufPed, bufGuev] = await Promise.all([
-            resPed.arrayBuffer(),
-            resGuev.arrayBuffer()
-          ]);
+          if (parsedRepasos.length > 0) {
+            this.repasoQuestions = parsedRepasos;
+            await this.saveToIndexedDB('parsedRepasos_v1', this.repasoQuestions);
+          }
+        }
 
-          await this.processBothPdfBuffers(bufPed, bufGuev);
-        } catch (err) {
-          console.warn('Fetch automático bloqueado o archivos no encontrados en ruta relativa:', err);
+        this.questions = [...this.baseQuestions, ...this.repasoQuestions];
+
+        if (this.questions.length > 0) {
+          this.buildUnitsIndex();
+          this.updateLoader(100, `¡Listo! ${this.questions.length} preguntas indexadas correctamente.`);
+          this.updateBadge(`${this.questions.length} preg listas`);
+          setTimeout(() => {
+            document.getElementById('loaderBanner').classList.add('hidden');
+          }, 800);
+          this.renderDashboard();
+          if (hasBase) this.loadPdfBinariesSilently();
+        } else if (!fetchedAny) {
           document.getElementById('loaderSpinner').classList.add('hidden');
           this.updateLoader(0, 'Esperando selección de archivos PDF (Modo local sin servidor)...');
           document.getElementById('manualFallbackBox').classList.remove('hidden');
@@ -1486,60 +1647,69 @@
         document.getElementById('loaderSpinner').classList.remove('hidden');
         document.getElementById('manualFallbackBox').classList.add('hidden');
 
-        let bufPed = await this.getFromIndexedDB('pdfBuffer_PEDIATRIA');
-        let bufGuev = await this.getFromIndexedDB('pdfBuffer_GUEVARA');
+        let bufPed = null;
+        let bufGuev = null;
+        const repasoFiles = [];
 
         for (const file of fileList) {
           const lower = file.name.toLowerCase();
           const buf = await file.arrayBuffer();
-          if (lower.includes('pediatria') || lower.includes('pediatría')) {
+
+          // Skip unanswered duplicate 1.1 if user selects all files at once
+          if (lower.startsWith('1.1.-') || (lower.includes('repaso módulo 1') && !lower.includes('soluci'))) {
+            continue;
+          }
+
+          // Match against the 8 Repaso sources
+          const matchedRepaso = REPASO_SOURCES.find(r =>
+            r.filename.toLowerCase() === lower ||
+            lower.includes(r.unitName.toLowerCase().slice(0, 18)) ||
+            (lower.includes('reconstrucci') && lower.includes('parte i') && !lower.includes('parte ii') && r.key === 'REPASO_REC_2021_1') ||
+            (lower.includes('reconstrucci') && lower.includes('parte ii') && r.key === 'REPASO_REC_2021_2') ||
+            (lower.includes('capítulo 2') && r.key === 'REPASO_C2_P1') ||
+            (lower.includes('final 1') && lower.includes('3') && r.key === 'REPASO_C3_P1') ||
+            (lower.includes('final 2') && lower.includes('3') && r.key === 'REPASO_C3_P2') ||
+            (lower.includes('final 3') && lower.includes('3') && r.key === 'REPASO_C3_P3') ||
+            (lower.includes('final 4') && lower.includes('3') && r.key === 'REPASO_C3_P4') ||
+            (lower.includes('repaso') && lower.includes('soluci') && r.key === 'REPASO_M1_P1')
+          );
+
+          if (matchedRepaso) {
+            repasoFiles.push({ src: matchedRepaso, buf });
+          } else if (lower.includes('pediatria') || lower.includes('pediatría')) {
             bufPed = buf;
           } else if (lower.includes('guevara')) {
-            bufGuev = buf;
-          } else if (!bufPed) {
-            bufPed = buf;
-          } else {
             bufGuev = buf;
           }
         }
 
-        await this.processBothPdfBuffers(bufPed, bufGuev);
-      },
-
-      async processBothPdfBuffers(bufPed, bufGuev) {
-        const allParsed = [];
-
-        if (bufPed) {
-          await this.saveToIndexedDB('pdfBuffer_PEDIATRIA', bufPed);
-          this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: bufPed.slice(0) }).promise;
-          const pedQuestions = await this.extractQuestionsFromPdfDoc(
-            this.pdfDocs.PEDIATRIA,
-            'PEDIATRIA',
-            1,
-            PEDIATRIA_CHAPTERS,
-            0,
-            20
-          );
-          allParsed.push(...pedQuestions);
+        if (bufPed || bufGuev) {
+          await this.processBasePdfBuffers(bufPed, bufGuev, 0, 50);
         }
 
-        if (bufGuev) {
-          await this.saveToIndexedDB('pdfBuffer_GUEVARA', bufGuev);
-          this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: bufGuev.slice(0) }).promise;
-          const guevQuestions = await this.extractQuestionsFromPdfDoc(
-            this.pdfDocs.GUEVARA,
-            'GUEVARA',
-            10, // Questions start on page 10 in Banco_EUNACOM_Guevara.pdf
-            GUEVARA_CHAPTERS,
-            20,
-            100
-          );
-          allParsed.push(...guevQuestions);
+        if (repasoFiles.length > 0) {
+          const existingMap = new Map();
+          for (const q of this.repasoQuestions) {
+            existingMap.set(q.id, q);
+          }
+
+          for (let i = 0; i < repasoFiles.length; i++) {
+            const { src, buf } = repasoFiles[i];
+            this.updateLoader(50 + ((i + 1) / repasoFiles.length) * 45, `Indexando ${src.unitName}...`);
+            await this.saveToIndexedDB(`pdfBuffer_${src.key}`, buf);
+            this.pdfDocs[src.key] = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+            const qs = await this.extractMoodleRepasoQuestions(this.pdfDocs[src.key], src);
+            for (const q of qs) {
+              existingMap.set(q.id, q);
+            }
+          }
+
+          this.repasoQuestions = Array.from(existingMap.values());
+          await this.saveToIndexedDB('parsedRepasos_v1', this.repasoQuestions);
         }
 
-        if (allParsed.length > 0) {
-          this.questions = allParsed;
-          await this.saveToIndexedDB('parsedQuestions', this.questions);
+        this.questions = [...this.baseQuestions, ...this.repasoQuestions];
+        if (this.questions.length > 0) {
           this.buildUnitsIndex();
           this.updateLoader(100, `¡Listo! ${this.questions.length} preguntas indexadas correctamente.`);
           this.updateBadge(`${this.questions.length} preg listas`);
@@ -1550,16 +1720,53 @@
         }
       },
 
-      async extractQuestionsFromPdfDoc(pdfDoc, bankId, startPage, chaptersMap, pctStart, pctEnd) {
+      async processBasePdfBuffers(bufPed, bufGuev, pctStart = 0, pctEnd = 100) {
+        const allBase = [];
+        const midPct = pctStart + (pctEnd - pctStart) * 0.25;
+
+        if (bufPed) {
+          await this.saveToIndexedDB('pdfBuffer_PEDIATRIA', bufPed);
+          this.pdfDocs.PEDIATRIA = await pdfjsLib.getDocument({ data: bufPed.slice(0) }).promise;
+          const pedQuestions = await this.extractQuestionsFromPdfDoc(
+            this.pdfDocs.PEDIATRIA,
+            'PEDIATRIA',
+            1,
+            PEDIATRIA_CHAPTERS,
+            pctStart,
+            midPct
+          );
+          allBase.push(...pedQuestions);
+        }
+
+        if (bufGuev) {
+          await this.saveToIndexedDB('pdfBuffer_GUEVARA', bufGuev);
+          this.pdfDocs.GUEVARA = await pdfjsLib.getDocument({ data: bufGuev.slice(0) }).promise;
+          const guevQuestions = await this.extractQuestionsFromPdfDoc(
+            this.pdfDocs.GUEVARA,
+            'GUEVARA',
+            10,
+            GUEVARA_CHAPTERS,
+            midPct,
+            pctEnd
+          );
+          allBase.push(...guevQuestions);
+        }
+
+        if (allBase.length > 0) {
+          this.baseQuestions = allBase;
+          await this.saveToIndexedDB('parsedQuestions', this.baseQuestions);
+        }
+      },
+
+      async extractPdfLinesWithPages(pdfDoc, startPage, onProgress) {
         const numPages = pdfDoc.numPages;
         const linesWithPages = [];
-        const CHUNK_SIZE = 15; // Mobile anti-crash chunking
+        const CHUNK_SIZE = 15;
 
         for (let p = startPage; p <= numPages; p++) {
           const page = await pdfDoc.getPage(p);
           const textContent = await page.getTextContent();
 
-          // Reconstruct lines from PDF text items using Y coordinate grouping
           const items = textContent.items.filter(it => it.str && it.str.trim().length > 0);
           items.sort((a, b) => {
             const yDiff = b.transform[5] - a.transform[5];
@@ -1588,19 +1795,26 @@
 
           linesWithPages.push({ page: p, lines: pageLines });
 
-          // Clean up page resources to keep mobile memory low
           if (typeof page.cleanup === 'function') page.cleanup();
 
-          if (p % CHUNK_SIZE === 0 || p === numPages) {
-            const progressRatio = (p - startPage) / Math.max(1, numPages - startPage);
-            const currentPct = pctStart + progressRatio * (pctEnd - pctStart);
-            this.updateLoader(
-              currentPct,
-              `Indexando ${bankId === 'PEDIATRIA' ? 'Banco Pediatría' : 'Banco Guevara'} (página ${p} de ${numPages})...`
-            );
+          if (onProgress && (p % CHUNK_SIZE === 0 || p === numPages)) {
+            onProgress(p, numPages);
             await new Promise(r => setTimeout(r, 1));
           }
         }
+
+        return linesWithPages;
+      },
+
+      async extractQuestionsFromPdfDoc(pdfDoc, bankId, startPage, chaptersMap, pctStart, pctEnd) {
+        const linesWithPages = await this.extractPdfLinesWithPages(pdfDoc, startPage, (p, numPages) => {
+          const progressRatio = (p - startPage) / Math.max(1, numPages - startPage);
+          const currentPct = pctStart + progressRatio * (pctEnd - pctStart);
+          this.updateLoader(
+            currentPct,
+            `Indexando ${bankId === 'PEDIATRIA' ? 'Banco Pediatría' : 'Banco Guevara'} (página ${p} de ${numPages})...`
+          );
+        });
 
         return this.parseStructuredQuestions(linesWithPages, bankId, chaptersMap);
       },
@@ -1616,22 +1830,18 @@
         const extracted = [];
         let currentSubtopic = '';
 
-        // Flatten all non-trivial lines while preserving page number
         const flatLines = [];
         for (const pageObj of linesWithPages) {
           const p = pageObj.page;
           for (const rawLine of pageObj.lines) {
             const line = rawLine.trim();
             if (!line) continue;
-            // Skip standalone page numbers
             if (/^\d{1,3}$/.test(line)) continue;
-            // Skip TOC lines containing pipe "| 10" or "Preguntas EUNACOM Pediatría" or "Contenido"
             if (/\|\s*\d+$/.test(line) || line === 'Contenido' || line === 'Preguntas EUNACOM Pediatría') continue;
             flatLines.push({ page: p, text: line });
           }
         }
 
-        // State machine to parse questions
         let state = 'IDLE'; // IDLE | STEM | OPTIONS | EXPLANATION
         let curQ = null;
         let curOptKey = null;
@@ -1644,7 +1854,6 @@
             .replace(/^La prueba de origen no tra[ií]a la respuesta ni la explicaci[oó]n;[^\n]*\n?/i, '')
             .trim();
 
-          // Clean OCR artifacts from ECG/Radiographs if present at the end of stem
           curQ.hasImage = IMAGE_CUE_REGEX.test(curQ.stem);
 
           const slugUnit = curQ.unit.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
@@ -1658,7 +1867,6 @@
           const { page, text } = flatLines[i];
           const unitForPage = this.getChapterForPage(chaptersMap, page);
 
-          // Check if line is a section/subtopic header like "Hipertensión arterial y dislipidemia (10)"
           const headerMatch = text.match(/^([A-ZÁÉÍÓÚÑ][^0-9\n]{3,85}?)\s*\(\d+\)\.?$/);
           if (headerMatch && state === 'IDLE') {
             const candidateHeader = headerMatch[1].trim();
@@ -1673,6 +1881,7 @@
             if (qStartMatch) {
               curQ = {
                 bank: bankId,
+                pdfKey: bankId,
                 unit: unitForPage,
                 subtopic: currentSubtopic || unitForPage,
                 num: parseInt(qStartMatch[1], 10),
@@ -1690,7 +1899,6 @@
           }
 
           if (state === 'STEM') {
-            // Transition to options when option 'a.' appears
             const optAMatch = text.match(/^([aA])[\.\)]\s+(.+)/);
             if (optAMatch) {
               curOptKey = 'a';
@@ -1731,7 +1939,6 @@
               continue;
             }
 
-            // Safety check in case a question had no "Fuente:" line and a new header or next question starts
             if (headerMatch) {
               const candidateHeader = headerMatch[1].trim();
               if (candidateHeader.toLowerCase() !== unitForPage.toLowerCase()) {
@@ -1750,17 +1957,257 @@
         return extracted;
       },
 
+      /* ==================== MOODLE REPASO & RECONSTRUCCIÓN PARSER ==================== */
+      normalizeForComparison(str) {
+        return (str || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/^[oa0☐✓✔x\.\)\s]+/i, '')
+          .replace(/[✓✔x]+$/g, '')
+          .replace(/[^a-z0-9]+/g, ' ')
+          .trim();
+      },
+
+      matchAnswerLetterFromText(optionsObj, answerText) {
+        const targetNorm = this.normalizeForComparison(answerText);
+        const letters = Object.keys(optionsObj);
+        if (letters.length === 0) return 'a';
+
+        // 1. Exact normalized match
+        for (const l of letters) {
+          const optNorm = this.normalizeForComparison(optionsObj[l]);
+          if (optNorm && optNorm === targetNorm) return l;
+        }
+
+        // 2. Substring match
+        for (const l of letters) {
+          const optNorm = this.normalizeForComparison(optionsObj[l]);
+          if (optNorm && targetNorm && (optNorm.includes(targetNorm) || targetNorm.includes(optNorm))) {
+            return l;
+          }
+        }
+
+        // 3. Token overlap similarity
+        const targetTokens = new Set(targetNorm.split(' ').filter(Boolean));
+        let bestLetter = letters[0];
+        let bestScore = -1;
+
+        for (const l of letters) {
+          const optTokens = this.normalizeForComparison(optionsObj[l]).split(' ').filter(Boolean);
+          if (optTokens.length === 0) continue;
+          let hits = 0;
+          for (const tok of optTokens) {
+            if (targetTokens.has(tok)) hits++;
+          }
+          const score = hits / Math.max(optTokens.length, targetTokens.size, 1);
+          if (score > bestScore) {
+            bestScore = score;
+            bestLetter = l;
+          }
+        }
+        return bestLetter;
+      },
+
+      async extractMoodleRepasoQuestions(pdfDoc, repasoMeta) {
+        const linesWithPages = await this.extractPdfLinesWithPages(pdfDoc, 1, null);
+        const flatLines = [];
+
+        const MOODLE_NOISE_REGEX = /^(?:Comenzado el|Estado|Finalizado|Tiempo empleado|Puntos|Calificaci[oó]n|Sin contestar|Correcta|Incorrecta|Parcialmente correcta|Se punt[uú]a|Punt[uú]a como|sobre 1,00|Seleccione una\s*:?|Actividad previa|Ir a\.\.\.|Siguiente actividad|Cap \d+ Internos|Avisos|Cuestionario \d+\.\d+|Resumen de alimentaci[oó]n|Reconstrucci[oó]n Eunacom agosto|Cap[ií]tulo \d+ - Prueba Final)/i;
+
+        for (const pageObj of linesWithPages) {
+          const p = pageObj.page;
+          for (const rawLine of pageObj.lines) {
+            const line = rawLine.trim();
+            if (!line) continue;
+            if (/^\d{1,3}$/.test(line)) continue;
+            if (/^(?:1,00|0,00|[xX✓✔☐\.\-]+|ill|11\.)$/.test(line)) continue;
+            if (MOODLE_NOISE_REGEX.test(line)) continue;
+            flatLines.push({ page: p, text: line });
+          }
+        }
+
+        const extracted = [];
+        let state = 'IDLE'; // IDLE | STEM | OPTIONS | EXPLANATION | ANSWER_TEXT
+        let curQ = null;
+        let curOptKey = null;
+        let pendingOrphanOptionLine = '';
+
+        const finalizeMoodleQuestion = () => {
+          if (!curQ) return;
+
+          // Clean trailing 'x' or '✔' from options (artifacts from user attempt markers in Repaso M1)
+          for (const k of Object.keys(curQ.options)) {
+            curQ.options[k] = curQ.options[k].replace(/\s*[xX✓✔]+$/, '').trim();
+          }
+
+          curQ.stem = curQ.stem.trim();
+          curQ.explanation = curQ.explanation.trim();
+          curQ.answerText = (curQ.answerText || '').trim();
+          curQ.answer = this.matchAnswerLetterFromText(curQ.options, curQ.answerText);
+          curQ.hasImage = IMAGE_CUE_REGEX.test(curQ.stem);
+          curQ.id = `REPASO_${repasoMeta.key}_Q${curQ.num}`;
+
+          if (Object.keys(curQ.options).length >= 2 && curQ.stem) {
+            extracted.push(curQ);
+          }
+
+          curQ = null;
+          curOptKey = null;
+          pendingOrphanOptionLine = '';
+        };
+
+        for (let i = 0; i < flatLines.length; i++) {
+          const { page, text } = flatLines[i];
+
+          // Detect start of a new Moodle question: "Pregunta 1", "Pregunta 2", etc.
+          const qMatch = text.match(/^Pregunta\s+(\d{1,3})\b(.*)$/i);
+          if (qMatch) {
+            if (curQ) finalizeMoodleQuestion();
+            curQ = {
+              bank: 'REPASO',
+              pdfKey: repasoMeta.key,
+              unit: repasoMeta.unitName,
+              subtopic: repasoMeta.subtopic,
+              num: parseInt(qMatch[1], 10),
+              page: page,
+              stem: (qMatch[2] || '').trim(),
+              options: {},
+              answer: '',
+              answerText: '',
+              isProposed: false,
+              explanation: '',
+              source: `${repasoMeta.unitName} · P${qMatch[1]}`
+            };
+            state = 'STEM';
+            curOptKey = null;
+            pendingOrphanOptionLine = '';
+            continue;
+          }
+
+          if (!curQ) continue;
+
+          // Detect "La respuesta correcta es: ..."
+          const ansLineMatch = text.match(/^La respuesta correcta es\s*:\s*(.*)$/i);
+          if (ansLineMatch) {
+            curQ.answerText = (ansLineMatch[1] || '').trim();
+            state = 'ANSWER_TEXT';
+            continue;
+          }
+
+          if (state === 'ANSWER_TEXT') {
+            // Append wrapped answer text lines until next Pregunta
+            curQ.answerText += (curQ.answerText ? ' ' : '') + text;
+            continue;
+          }
+
+          // Match Moodle option line (handles "a. Text", "Oa. Text", "O b. Text", "Oc.", " . Text", etc.)
+          const optMatch = text.match(/^(?:[O0o☐✓✔xX\s]{0,3})?([a-eA-E])[\.\)]\s*(.*)$/);
+          const bulletOptMatch = (state === 'OPTIONS' && !optMatch) ? text.match(/^[•\-\.]\s+(.+)$/) : null;
+
+          if (state === 'STEM') {
+            if (optMatch && optMatch[1].toLowerCase() === 'a') {
+              curOptKey = 'a';
+              curQ.options['a'] = (optMatch[2] || '').trim();
+              state = 'OPTIONS';
+            } else {
+              curQ.stem += (curQ.stem ? '\n' : '') + text;
+            }
+            continue;
+          }
+
+          if (state === 'OPTIONS') {
+            if (optMatch) {
+              const letter = optMatch[1].toLowerCase();
+              let val = (optMatch[2] || '').trim();
+              if (!val && pendingOrphanOptionLine) {
+                val = pendingOrphanOptionLine;
+                pendingOrphanOptionLine = '';
+              }
+              curOptKey = letter;
+              curQ.options[letter] = val;
+              continue;
+            }
+
+            // Handle occasional bulleted option in Moodle PDF (e.g. " . Iniciar azitromicina oral")
+            if (bulletOptMatch && curOptKey) {
+              const nextLetterCode = curOptKey.charCodeAt(0) + 1;
+              if (nextLetterCode <= 101) { // 'e'
+                curOptKey = String.fromCharCode(nextLetterCode);
+                curQ.options[curOptKey] = bulletOptMatch[1].trim();
+                continue;
+              }
+            }
+
+            // If current option has empty text (e.g. "Oc." appeared before its text), fill it now
+            if (curOptKey && !curQ.options[curOptKey]) {
+              curQ.options[curOptKey] = text;
+              continue;
+            }
+
+            // Check if we reached the explanation block after option 'e'
+            if (curOptKey === 'e') {
+              const curOptVal = (curQ.options['e'] || '').trim();
+              const startsLowerOrDash = /^[a-záéíóúñ0-9,\(\-]/.test(text);
+              const endsWithConnector = /\b(de|del|la|las|el|los|y|o|e|u|a|en|con|por|para|sin|al|que|como)$/i.test(curOptVal);
+
+              if (startsLowerOrDash || endsWithConnector) {
+                curQ.options['e'] += ' ' + text;
+              } else {
+                state = 'EXPLANATION';
+                curQ.explanation = text;
+              }
+              continue;
+            }
+
+            // Before option 'e', check if this line is a continuation of current option or an orphan line before "Oc."
+            if (curOptKey) {
+              const nextLine = flatLines[i + 1]?.text || '';
+              const nextIsEmptyLetter = /^(?:[O0o☐✓✔xX\s]{0,3})?[a-eA-E][\.\)]\s*$/.test(nextLine);
+              if (nextIsEmptyLetter) {
+                pendingOrphanOptionLine = text;
+              } else {
+                curQ.options[curOptKey] += ' ' + text;
+              }
+            }
+            continue;
+          }
+
+          if (state === 'EXPLANATION') {
+            curQ.explanation += (curQ.explanation ? '\n' : '') + text;
+          }
+        }
+
+        if (curQ) finalizeMoodleQuestion();
+        return extracted;
+      },
+
       buildUnitsIndex() {
         this.unitsMap.clear();
 
-        // Initialize canonical order: Pediatría (14 units) + Guevara (19 units)
+        // 1. Pediatría (14 units)
         for (const ch of PEDIATRIA_CHAPTERS) {
           const uid = `PEDIATRIA__${ch.name}`;
           this.unitsMap.set(uid, { id: uid, bank: 'PEDIATRIA', name: ch.name, questions: [] });
         }
+
+        // 2. Guevara (19 units)
         for (const ch of GUEVARA_CHAPTERS) {
           const uid = `GUEVARA__${ch.name}`;
           this.unitsMap.set(uid, { id: uid, bank: 'GUEVARA', name: ch.name, questions: [] });
+        }
+
+        // 3. Repasos & Reconstrucciones (8 units)
+        for (const rep of REPASO_SOURCES) {
+          const uid = `REPASO__${rep.unitName}`;
+          this.unitsMap.set(uid, {
+            id: uid,
+            bank: 'REPASO',
+            name: rep.unitName,
+            category: rep.category,
+            subtopic: rep.subtopic,
+            questions: []
+          });
         }
 
         for (const q of this.questions) {
@@ -1780,17 +2227,15 @@
         let answeredQ = 0, correctQ = 0, incorrectQ = 0, everFailedQ = 0, bookmarkedQ = 0;
         let pedTotal = 0, pedAns = 0, pedCor = 0;
         let guevTotal = 0, guevAns = 0, guevCor = 0;
+        let repTotal = 0, repAns = 0, repCor = 0;
 
         for (const q of this.questions) {
           if (q.bank === 'PEDIATRIA') pedTotal++;
-          else guevTotal++;
+          else if (q.bank === 'GUEVARA') guevTotal++;
+          else if (q.bank === 'REPASO') repTotal++;
 
-          if (this.isEverFailed(q.id)) {
-            everFailedQ++;
-          }
-          if (this.isBookmarked(q.id)) {
-            bookmarkedQ++;
-          }
+          if (this.isEverFailed(q.id)) everFailedQ++;
+          if (this.isBookmarked(q.id)) bookmarkedQ++;
 
           if (this.isAnswered(q.id)) {
             answeredQ++;
@@ -1801,9 +2246,12 @@
             if (q.bank === 'PEDIATRIA') {
               pedAns++;
               if (isCor) pedCor++;
-            } else {
+            } else if (q.bank === 'GUEVARA') {
               guevAns++;
               if (isCor) guevCor++;
+            } else if (q.bank === 'REPASO') {
+              repAns++;
+              if (isCor) repCor++;
             }
           }
         }
@@ -1823,19 +2271,16 @@
         document.getElementById('kpiAccuracyCounts').textContent = `${correctQ} ✅ · ${incorrectQ} ❌`;
 
         const everFailedBadge = document.getElementById('kpiEverFailedBadge');
-        if (everFailedBadge) {
-          everFailedBadge.textContent = `📌 ${everFailedQ} hist. fallos`;
-        }
+        if (everFailedBadge) everFailedBadge.textContent = `📌 ${everFailedQ} hist. fallos`;
 
         const bookmarkedBadge = document.getElementById('kpiBookmarkedBadge');
-        if (bookmarkedBadge) {
-          bookmarkedBadge.textContent = `⭐ ${bookmarkedQ} guardadas`;
-        }
+        if (bookmarkedBadge) bookmarkedBadge.textContent = `⭐ ${bookmarkedQ} guardadas`;
 
         const tabSavedPill = document.getElementById('tabSavedCountPill');
-        if (tabSavedPill) {
-          tabSavedPill.textContent = bookmarkedQ;
-        }
+        if (tabSavedPill) tabSavedPill.textContent = bookmarkedQ;
+
+        const tabRepasosPill = document.getElementById('tabRepasosCountPill');
+        if (tabRepasosPill) tabRepasosPill.textContent = `${repAns}/${repTotal}`;
 
         document.getElementById('kpiPedPct').textContent = `${pedAns} / ${pedTotal}`;
         document.getElementById('kpiPedAcc').textContent = `${pedAcc}% acierto`;
@@ -1847,6 +2292,7 @@
 
         this.renderUnitsGrid();
         this.renderSavedByChapterTab();
+        this.renderRepasosTab();
       },
 
       startGlobalEverFailedQuiz() {
@@ -1903,6 +2349,7 @@
         this.bankFilter = filter;
         ['ALL', 'PEDIATRIA', 'GUEVARA'].forEach(k => {
           const btn = document.getElementById(`filterBank${k}`);
+          if (!btn) return;
           if (k === filter) {
             btn.className = 'px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-600 text-white';
           } else {
@@ -1919,6 +2366,7 @@
         container.innerHTML = '';
 
         for (const unit of this.unitsMap.values()) {
+          if (unit.bank === 'REPASO') continue; // Repasos live in their dedicated tab
           if (unit.questions.length === 0) continue;
           if (this.bankFilter !== 'ALL' && unit.bank !== this.bankFilter) continue;
           if (query && !unit.name.toLowerCase().includes(query)) continue;
@@ -1996,6 +2444,186 @@
         }
       },
 
+      /* ==================== TAB 4: REPASOS & RECONSTRUCCIONES RENDERING ==================== */
+      renderRepasosTab() {
+        const container = document.getElementById('repasosGrid');
+        if (!container) return;
+        const query = (document.getElementById('unitSearchInput')?.value || '').toLowerCase().trim();
+        container.innerHTML = '';
+
+        let repTotal = 0, repAns = 0, repCor = 0, repEverFailed = 0, repBookmarked = 0;
+
+        for (const unit of this.unitsMap.values()) {
+          if (unit.bank !== 'REPASO') continue;
+          const total = unit.questions.length;
+          repTotal += total;
+
+          let answered = 0, correct = 0, everFailed = 0, bookmarked = 0;
+          for (const q of unit.questions) {
+            if (this.isEverFailed(q.id)) { everFailed++; repEverFailed++; }
+            if (this.isBookmarked(q.id)) { bookmarked++; repBookmarked++; }
+            if (this.isAnswered(q.id)) {
+              answered++;
+              repAns++;
+              if (this.isCurrentlyCorrect(q.id)) { correct++; repCor++; }
+            }
+          }
+
+          if (query && !unit.name.toLowerCase().includes(query) && !(unit.category || '').toLowerCase().includes(query) && !(unit.subtopic || '').toLowerCase().includes(query)) {
+            continue;
+          }
+
+          const advPct = total > 0 ? Math.round((answered / total) * 100) : 0;
+          const accPct = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+          const numSets = Math.ceil(total / 20);
+
+          let accBadgeColor = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+          if (answered > 0) {
+            if (accPct >= 75) accBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+            else if (accPct >= 50) accBadgeColor = 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30';
+            else accBadgeColor = 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30';
+          }
+
+          const bookmarkedPill = bookmarked > 0
+            ? `<button onclick="app.startUnitBookmarkedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 transition" title="Practicar guardadas ⭐ de esta prueba">⭐ ${bookmarked}</button>`
+            : '';
+
+          const everFailedPill = everFailed > 0
+            ? `<button onclick="app.startUnitEverFailedOnly('${unit.id}')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition" title="Practicar historial de falladas de esta prueba">📌 ${everFailed}</button>`
+            : '';
+
+          const card = document.createElement('div');
+          card.className = 'bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm hover:border-teal-500/60 transition flex flex-col justify-between gap-4';
+          card.innerHTML = `
+            <div class="space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-1.5">
+                <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-teal-500/15 text-teal-600 dark:text-teal-300">${unit.category || 'REPASO'}</span>
+                <div class="flex flex-wrap items-center gap-1">
+                  ${bookmarkedPill}
+                  ${everFailedPill}
+                  <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${accBadgeColor}">
+                    ${answered > 0 ? `Acierto: ${accPct}% (${correct}/${answered})` : 'Sin intentos'}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white leading-snug">${unit.name}</h3>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${unit.subtopic || ''}</p>
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span>Avance: <strong class="text-slate-800 dark:text-slate-200">${answered} / ${total}</strong> preg</span>
+                  <span class="font-bold text-teal-600 dark:text-teal-400">${advPct}%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div class="h-full bg-teal-500 transition-all duration-300" style="width: ${advPct}%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+              <button onclick="app.startFullRepasoExam('${unit.id}')" class="py-2 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition flex items-center justify-center gap-1">
+                <span>📝 ${answered > 0 && answered < total ? 'Continuar' : 'Rendir'} (${total})</span>
+              </button>
+              <button onclick="app.openUnitSets('${unit.id}')" class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition flex items-center justify-center gap-1">
+                <span>📋 Sets de 20 (${numSets})</span>
+              </button>
+            </div>
+          `;
+          container.appendChild(card);
+        }
+
+        const statsEl = document.getElementById('repasosSummaryStats');
+        if (statsEl) {
+          const repAcc = repAns > 0 ? Math.round((repCor / repAns) * 100) : 0;
+          statsEl.textContent = `${repAns} / ${repTotal} preg · ${repAcc}% acierto`;
+        }
+
+        const efBtn = document.getElementById('repasosEverFailedBtn');
+        if (efBtn) efBtn.textContent = `📌 Falladas Repasos (${repEverFailed})`;
+
+        const bmBtn = document.getElementById('repasosBookmarkedBtn');
+        if (bmBtn) bmBtn.textContent = `⭐ Guardadas Repasos (${repBookmarked})`;
+      },
+
+      startFullRepasoExam(unitId) {
+        const unit = this.unitsMap.get(unitId);
+        if (!unit || unit.questions.length === 0) return;
+        this.activeUnitId = unitId;
+
+        let firstUnanswered = unit.questions.findIndex(q => !this.isAnswered(q.id));
+        if (firstUnanswered === -1) firstUnanswered = 0;
+
+        this.launchQuizSession(
+          [...unit.questions],
+          `${unit.name}`,
+          `${unit.subtopic || 'Ensayo Completo'} · ${unit.questions.length} preguntas`,
+          firstUnanswered
+        );
+      },
+
+      startRepasosRandomQuiz(count = 20) {
+        if (this.repasoQuestions.length === 0) {
+          alert('Aún no hay preguntas de Repaso cargadas.');
+          return;
+        }
+        let pool = this.repasoQuestions.filter(q => !this.isCurrentlyCorrect(q.id));
+        if (pool.length === 0) pool = [...this.repasoQuestions];
+
+        const chosen = this.shuffleArray(pool).slice(0, count);
+        for (const q of chosen) {
+          if (this.isAnswered(q.id)) this.markQuestionResetForRetry(q.id);
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          chosen,
+          `Repasos & Reconstrucciones — Random (${chosen.length})`,
+          'Mezcla inteligente de los 8 ensayos de repaso (sin repetir acertadas)',
+          0
+        );
+      },
+
+      startRepasosEverFailedQuiz() {
+        const pool = this.repasoQuestions.filter(q => this.isEverFailed(q.id));
+        if (pool.length === 0) {
+          alert('Aún no tienes preguntas falladas registradas en la sección Repasos.');
+          return;
+        }
+        const chosen = this.shuffleArray(pool).slice(0, 20);
+        for (const q of chosen) {
+          this.markQuestionResetForRetry(q.id);
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          chosen,
+          `Falladas de Repasos (${chosen.length} de ${pool.length})`,
+          'Repaso focalizado de preguntas falladas en ensayos finales y reconstrucciones',
+          0
+        );
+      },
+
+      startRepasosBookmarkedQuiz() {
+        const pool = this.repasoQuestions.filter(q => this.isBookmarked(q.id));
+        if (pool.length === 0) {
+          alert('Aún no tienes preguntas guardadas con ⭐ en la sección Repasos.');
+          return;
+        }
+        const chosen = this.shuffleArray(pool).slice(0, 20);
+        for (const q of chosen) {
+          this.markQuestionResetForRetry(q.id);
+        }
+        this.saveProgressToStorage();
+
+        this.launchQuizSession(
+          chosen,
+          `Guardadas de Repasos ⭐ (${chosen.length} de ${pool.length})`,
+          'Repaso de preguntas guardadas en ensayos finales y reconstrucciones',
+          0
+        );
+      },
+
       renderSavedByChapterTab() {
         const container = document.getElementById('savedChaptersGrid');
         if (!container) return;
@@ -2019,9 +2647,12 @@
             else if (this.isCurrentlyIncorrect(q.id)) inc++;
           }
 
-          const bankBadge = unit.bank === 'PEDIATRIA'
-            ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`
-            : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
+          let bankBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400">GUEVARA</span>`;
+          if (unit.bank === 'PEDIATRIA') {
+            bankBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-sky-500/15 text-sky-600 dark:text-sky-400">PEDIATRÍA</span>`;
+          } else if (unit.bank === 'REPASO') {
+            bankBadge = `<span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-teal-500/15 text-teal-600 dark:text-teal-300">REPASO</span>`;
+          }
 
           const qNumsPreview = savedQs.slice(0, 8).map(q => `#${q.num}`).join(', ') + (savedQs.length > 8 ? '...' : '');
 
@@ -2061,7 +2692,7 @@
               <div class="text-3xl">☆</div>
               <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Aún no tienes preguntas guardadas en esta vista</h3>
               <p class="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                Cuando estés haciendo cualquier ensayo o revisando una pregunta, presiona el botón <strong>"☆ Guardar"</strong> (arriba a la derecha de la pregunta o con la tecla <strong>G</strong>) y aparecerán clasificadas por capítulo aquí.
+                Cuando estés haciendo cualquier ensayo o repaso, presiona el botón <strong>"☆ Guardar"</strong> (arriba a la derecha de la pregunta o con la tecla <strong>G</strong>) y aparecerán clasificadas por capítulo aquí.
               </p>
             </div>
           `;
@@ -2069,14 +2700,19 @@
       },
 
       switchMainTab(tab) {
+        this.lastMainTab = tab;
         const isUnits = tab === 'units';
         const isSaved = tab === 'saved';
         const isRandom = tab === 'random';
+        const isRepasos = tab === 'repasos';
 
         document.getElementById('tabContentUnits').classList.toggle('hidden', !isUnits);
         document.getElementById('tabContentSaved').classList.toggle('hidden', !isSaved);
         document.getElementById('tabContentRandom').classList.toggle('hidden', !isRandom);
+        document.getElementById('tabContentRepasos').classList.toggle('hidden', !isRepasos);
+
         document.getElementById('unitFilterControls').classList.toggle('hidden', isRandom);
+        document.getElementById('bankFilterPillsBox').classList.toggle('hidden', isRepasos);
 
         const activeCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm';
         const inactiveCls = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
@@ -2084,10 +2720,10 @@
         document.getElementById('tabBtnUnits').className = isUnits ? activeCls : inactiveCls;
         document.getElementById('tabBtnSaved').className = isSaved ? activeCls : inactiveCls;
         document.getElementById('tabBtnRandom').className = isRandom ? activeCls : inactiveCls;
+        document.getElementById('tabBtnRepasos').className = isRepasos ? activeCls : inactiveCls;
 
-        if (isSaved) {
-          this.renderSavedByChapterTab();
-        }
+        if (isSaved) this.renderSavedByChapterTab();
+        if (isRepasos) this.renderRepasosTab();
       },
 
       /* ==================== UNIT SETS OF 20 VIEW ==================== */
@@ -2101,11 +2737,33 @@
         document.getElementById('summaryView').classList.add('hidden');
         document.getElementById('setsView').classList.remove('hidden');
 
+        const backLabel = document.getElementById('setsViewBackLabel');
+        if (backLabel) {
+          backLabel.textContent = unit.bank === 'REPASO' ? 'Volver a Repasos y Reconstrucciones' : 'Volver a Progreso por Unidades';
+        }
+
         const badge = document.getElementById('setsViewBankBadge');
-        badge.textContent = unit.bank === 'PEDIATRIA' ? 'BANCO PEDIATRÍA' : 'BANCO GUEVARA';
-        badge.className = unit.bank === 'PEDIATRIA'
-          ? 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/15 text-sky-400'
-          : 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-indigo-500/15 text-indigo-400';
+        if (unit.bank === 'PEDIATRIA') {
+          badge.textContent = 'BANCO PEDIATRÍA';
+          badge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-sky-500/15 text-sky-400';
+        } else if (unit.bank === 'REPASO') {
+          badge.textContent = unit.category || 'REPASO EUNACOM';
+          badge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-teal-500/15 text-teal-300';
+        } else {
+          badge.textContent = 'BANCO GUEVARA';
+          badge.className = 'px-2 py-0.5 text-[11px] font-bold rounded-md bg-indigo-500/15 text-indigo-400';
+        }
+
+        const fullExamBtn = document.getElementById('setsViewFullExamBtn');
+        if (fullExamBtn) {
+          if (unit.bank === 'REPASO') {
+            fullExamBtn.classList.remove('hidden');
+            fullExamBtn.textContent = `📝 Rendir Prueba Completa (${unit.questions.length})`;
+            fullExamBtn.onclick = () => this.startFullRepasoExam(unitId);
+          } else {
+            fullExamBtn.classList.add('hidden');
+          }
+        }
 
         let unitCurrentWrong = 0;
         let unitEverFailed = 0;
@@ -2176,7 +2834,7 @@
           blockCard.innerHTML = `
             <div class="space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-sm font-extrabold text-slate-900 dark:text-white">Prueba ${s + 1} <span class="text-xs font-normal text-slate-500">(Preg. ${firstNum}–${lastNum})</span></span>
+                <span class="text-sm font-extrabold text-slate-900 dark:text-white">Bloque ${s + 1} <span class="text-xs font-normal text-slate-500">(Preg. ${firstNum}–${lastNum})</span></span>
                 <span class="px-2 py-0.5 rounded-md text-[11px] font-bold ${statusClass}">${statusLabel}</span>
               </div>
               <div class="flex items-center justify-between text-xs text-slate-500">
@@ -2189,16 +2847,24 @@
             </div>
             <div class="flex items-center gap-1.5 pt-1">
               <button onclick="app.startFixedSet('${unitId}', ${s})" class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
-                ${ans > 0 && ans < slice.length ? 'Continuar Prueba' : 'Rendir Prueba'}
+                ${ans > 0 && ans < slice.length ? 'Continuar Bloque' : 'Rendir Bloque'}
               </button>
-              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas actuales de esta prueba" class="py-2 px-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌(${inc})</button>` : ''}
-              ${everF > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'everFailed')" title="Repasar historial de falladas de esta prueba" class="py-2 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs transition">📌(${everF})</button>` : ''}
-              ${bm > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'bookmarked')" title="Repasar las preguntas guardadas ⭐ de esta prueba" class="py-2 px-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 font-bold text-xs transition">⭐(${bm})</button>` : ''}
+              ${inc > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'incorrect')" title="Reintentar solo las incorrectas actuales de este bloque" class="py-2 px-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 font-bold text-xs transition">❌(${inc})</button>` : ''}
+              ${everF > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'everFailed')" title="Repasar historial de falladas de este bloque" class="py-2 px-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-xs transition">📌(${everF})</button>` : ''}
+              ${bm > 0 ? `<button onclick="app.startFixedSetSubset('${unitId}', ${s}, 'bookmarked')" title="Repasar las preguntas guardadas ⭐ de este bloque" class="py-2 px-2 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 text-violet-600 dark:text-violet-300 border border-violet-500/30 font-bold text-xs transition">⭐(${bm})</button>` : ''}
             </div>
           `;
           grid.appendChild(blockCard);
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+
+      returnFromSetsView() {
+        const wasRepaso = this.activeUnitId && this.activeUnitId.startsWith('REPASO__');
+        this.showDashboard();
+        if (wasRepaso) {
+          this.switchMainTab('repasos');
+        }
       },
 
       startFixedSet(unitId, setIndex) {
@@ -2209,10 +2875,12 @@
         let firstUnanswered = slice.findIndex(q => !this.isAnswered(q.id));
         if (firstUnanswered === -1) firstUnanswered = 0;
 
+        const bankName = unit.bank === 'PEDIATRIA' ? 'Pediatría' : (unit.bank === 'REPASO' ? 'Repasos' : 'Guevara');
+
         this.launchQuizSession(
           slice,
-          `${unit.name} — Prueba ${setIndex + 1}`,
-          `Banco ${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'} · Bloque fijo de ${slice.length} preguntas`,
+          `${unit.name} — Bloque ${setIndex + 1}`,
+          `Banco ${bankName} · Bloque fijo de ${slice.length} preguntas`,
           firstUnanswered
         );
       },
@@ -2244,7 +2912,7 @@
 
         this.launchQuizSession(
           filtered,
-          `${unit.name} — Prueba ${setIndex + 1} (${modeLabel})`,
+          `${unit.name} — Bloque ${setIndex + 1} (${modeLabel})`,
           `Repaso focalizado de ${filtered.length} preguntas`,
           0
         );
@@ -2254,14 +2922,15 @@
       populateRandomUnitsDropdown() {
         const bankSel = document.getElementById('randomBankSelect').value;
         const unitSel = document.getElementById('randomUnitSelect');
-        unitSel.innerHTML = '<option value="ALL">Todas las especialidades / unidades</option>';
+        unitSel.innerHTML = '<option value="ALL">Todas las especialidades / unidades / pruebas</option>';
 
         for (const unit of this.unitsMap.values()) {
           if (unit.questions.length === 0) continue;
           if (bankSel !== 'ALL' && unit.bank !== bankSel) continue;
           const opt = document.createElement('option');
           opt.value = unit.id;
-          opt.textContent = `[${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'}] ${unit.name} (${unit.questions.length})`;
+          const tag = unit.bank === 'PEDIATRIA' ? 'Pediatría' : (unit.bank === 'REPASO' ? 'Repaso' : 'Guevara');
+          opt.textContent = `[${tag}] ${unit.name} (${unit.questions.length})`;
           unitSel.appendChild(opt);
         }
       },
@@ -2360,10 +3029,12 @@
         }
         this.saveProgressToStorage();
 
+        const bankLabel = unit.bank === 'PEDIATRIA' ? 'Pediatría' : (unit.bank === 'REPASO' ? 'Repasos' : 'Guevara');
+
         this.launchQuizSession(
           chosen,
           `${unit.name} — 20 Random`,
-          `Modo Sin Repetir Acertadas · Banco ${unit.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'}`,
+          `Modo Sin Repetir Acertadas · Banco ${bankLabel}`,
           0
         );
       },
@@ -2464,7 +3135,7 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
 
-      renderCurrentQuestion() {
+      async renderCurrentQuestion() {
         const q = this.activeQuestions[this.currentIndex];
         if (!q) return;
 
@@ -2474,7 +3145,7 @@
         const bookmarked = this.isBookmarked(q.id);
 
         document.getElementById('qCounterBadge').textContent = `Pregunta ${this.currentIndex + 1} / ${total} (#${q.num})`;
-        document.getElementById('qBankBadge').textContent = q.bank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara';
+        document.getElementById('qBankBadge').textContent = q.bank === 'PEDIATRIA' ? 'Pediatría' : (q.bank === 'REPASO' ? 'Repaso' : 'Guevara');
         document.getElementById('qSubtopicBadge').textContent = q.subtopic || q.unit;
         document.getElementById('qPageBtnText').textContent = `Ver lámina (Pág. ${q.page})`;
         document.getElementById('mobileGridBtnCount').textContent = `${this.currentIndex + 1}/${total}`;
@@ -2529,9 +3200,15 @@
 
         // Inline Clinical Image Render if question has image cue
         const inlineImgBox = document.getElementById('inlineImageContainer');
-        if (q.hasImage && this.pdfDocs[q.bank]) {
-          inlineImgBox.classList.remove('hidden');
-          this.renderPdfPageToCanvas(q.bank, q.page, document.getElementById('inlinePdfCanvas'), 1.25);
+        const docLookupKey = q.pdfKey || q.bank;
+        if (q.hasImage) {
+          const doc = await this.ensurePdfDocLoaded(docLookupKey);
+          if (doc) {
+            inlineImgBox.classList.remove('hidden');
+            this.renderPdfPageToCanvas(docLookupKey, q.page, document.getElementById('inlinePdfCanvas'), 1.25);
+          } else {
+            inlineImgBox.classList.add('hidden');
+          }
         } else {
           inlineImgBox.classList.add('hidden');
         }
@@ -2831,8 +3508,8 @@
       },
 
       /* ==================== PDF PAGE / CLINICAL IMAGE VIEWER ==================== */
-      async renderPdfPageToCanvas(bankId, pageNum, canvas, scale = 1.5) {
-        const pdfDoc = this.pdfDocs[bankId];
+      async renderPdfPageToCanvas(docKey, pageNum, canvas, scale = 1.5) {
+        const pdfDoc = await this.ensurePdfDocLoaded(docKey);
         if (!pdfDoc || !canvas) return;
         try {
           const page = await pdfDoc.getPage(pageNum);
@@ -2850,12 +3527,14 @@
         const q = this.activeQuestions[this.currentIndex];
         if (!q) return;
 
-        if (!this.pdfDocs[q.bank]) {
-          alert('Para visualizar la lámina original del PDF, asegúrate de que el PDF esté cargado en la sesión.');
+        const docKey = q.pdfKey || q.bank;
+        const doc = await this.ensurePdfDocLoaded(docKey);
+        if (!doc) {
+          alert('Para visualizar la lámina original del PDF, asegúrate de que el PDF esté subido en el repositorio o cargado en la sesión.');
           return;
         }
 
-        this.modalPdfBank = q.bank;
+        this.modalPdfBank = docKey;
         this.modalPdfPage = q.page;
         this.modalScale = window.innerWidth < 640 ? 1.2 : 1.6;
 
@@ -2864,8 +3543,15 @@
       },
 
       async refreshModalCanvas() {
+        let label = 'Guevara';
+        if (this.modalPdfBank === 'PEDIATRIA') label = 'Pediatría';
+        else if (this.modalPdfBank !== 'GUEVARA') {
+          const rep = REPASO_SOURCES.find(r => r.key === this.modalPdfBank);
+          label = rep ? rep.unitName : 'Repaso';
+        }
+
         document.getElementById('pdfModalTitle').textContent =
-          `Lámina PDF (${this.modalPdfBank === 'PEDIATRIA' ? 'Pediatría' : 'Guevara'} — Página ${this.modalPdfPage})`;
+          `Lámina PDF (${label} — Página ${this.modalPdfPage})`;
         await this.renderPdfPageToCanvas(
           this.modalPdfBank,
           this.modalPdfPage,
@@ -2875,7 +3561,7 @@
       },
 
       async changeModalPage(delta) {
-        const doc = this.pdfDocs[this.modalPdfBank];
+        const doc = await this.ensurePdfDocLoaded(this.modalPdfBank);
         if (!doc) return;
         const nextP = this.modalPdfPage + delta;
         if (nextP >= 1 && nextP <= doc.numPages) {
@@ -3026,9 +3712,13 @@
       async forceReindexPDFs() {
         this.closeDataModal();
         await this.saveToIndexedDB('parsedQuestions', null);
+        await this.saveToIndexedDB('parsedRepasos_v1', null);
+        this.baseQuestions = [];
+        this.repasoQuestions = [];
+        this.questions = [];
         document.getElementById('loaderBanner').classList.remove('hidden');
         document.getElementById('loaderSpinner').classList.remove('hidden');
-        await this.autoFetchAndParsePDFs();
+        await this.autoFetchAndParseMissingPDFs(false, false);
       },
 
       async clearAllProgress() {
